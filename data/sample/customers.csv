@@ -1,0 +1,88 @@
+customer_id,name,country,occupation,risk_level
+CUST-NORM-001,Michael Mehta,IND,Textile Trader,LOW
+CUST-NORM-002,Arjun Mehta,UAE,Student,LOW
+CUST-NORM-003,Tara Verma,IND,Retail Store Owner,LOW
+CUST-NORM-004,Emily Sharma,IND,Import-Export Agent,LOW
+CUST-NORM-005,Sarah Johnson,IND,Retired Civil Servant,LOW
+CUST-NORM-006,Aarav Nair,UAE,Real Estate Broker,LOW
+CUST-NORM-007,Muhammad Khan,IND,Jewelry Retailer,LOW
+CUST-NORM-008,Isha Deshmukh,GBR,Import-Export Agent,LOW
+CUST-NORM-009,Vihaan Smith,IND,Textile Trader,MEDIUM
+CUST-NORM-010,Emily Choudhury,IND,Import-Export Agent,LOW
+CUST-NORM-011,Elena Gupta,SGP,Merchant Exporter,MEDIUM
+CUST-NORM-012,Vihaan Smith,IND,Freelance Designer,MEDIUM
+CUST-NORM-013,Reyansh Choudhury,IND,Freelance Designer,LOW
+CUST-NORM-014,Elena Patel,UAE,Consultant,LOW
+CUST-NORM-015,Sai Nair,IND,Textile Trader,HIGH
+CUST-NORM-016,Michael Gupta,UAE,Software Engineer,LOW
+CUST-NORM-017,Vivaan Khan,IND,Merchant Exporter,LOW
+CUST-NORM-018,David Khan,IND,Logistics Contractor,LOW
+CUST-NORM-019,Michael Williams,IND,Consultant,LOW
+CUST-NORM-020,Sarah Deshmukh,SGP,Jewelry Retailer,MEDIUM
+CUST-NORM-021,Rhea Choudhury,IND,Consultant,LOW
+CUST-NORM-022,Aditya Verma,USA,Consultant,LOW
+CUST-NORM-023,Elena Johnson,IND,Jewelry Retailer,LOW
+CUST-NORM-024,Kavya Deshmukh,MUS,Software Engineer,LOW
+CUST-NORM-025,Vihaan Deshmukh,SGP,Real Estate Broker,LOW
+CUST-NORM-026,Tara Nair,IND,Import-Export Agent,MEDIUM
+CUST-NORM-027,Ananya Nair,IND,Merchant Exporter,MEDIUM
+CUST-NORM-028,Diya Rao,IND,Consultant,LOW
+CUST-NORM-029,John Sharma,IND,Logistics Contractor,LOW
+CUST-NORM-030,Isha Iyer,IND,Retail Store Owner,MEDIUM
+CUST-NORM-031,Aditya Patel,SGP,Merchant Exporter,HIGH
+CUST-NORM-032,Sarah Singh,IND,Logistics Contractor,MEDIUM
+CUST-NORM-033,Reyansh Deshmukh,IND,Retired Civil Servant,LOW
+CUST-NORM-034,Muhammad Rao,SGP,Jewelry Retailer,HIGH
+CUST-NORM-035,Michael Choudhury,IND,Student,LOW
+CUST-NORM-036,Sai Gupta,IND,Software Engineer,LOW
+CUST-NORM-037,Sai Gupta,IND,Import-Export Agent,LOW
+CUST-NORM-038,Sai Patel,USA,Real Estate Broker,LOW
+CUST-NORM-039,Sai Deshmukh,UAE,Retail Store Owner,LOW
+CUST-NORM-040,Chloe Taylor,IND,Logistics Contractor,MEDIUM
+CUST-NORM-041,Muhammad Mehta,IND,Jewelry Retailer,LOW
+CUST-NORM-042,Tara Williams,USA,Software Engineer,LOW
+CUST-NORM-043,Michael Mehta,IND,Import-Export Agent,LOW
+CUST-NORM-044,Vihaan Gupta,IND,Student,LOW
+CUST-NORM-045,Tara Nair,IND,Retail Store Owner,MEDIUM
+CUST-NORM-046,Aditya Williams,GBR,Student,LOW
+CUST-NORM-047,Michael Sharma,MUS,Retail Store Owner,LOW
+CUST-NORM-048,Pooja Taylor,IND,Jewelry Retailer,MEDIUM
+CUST-NORM-049,Reyansh Smith,IND,Jewelry Retailer,LOW
+CUST-NORM-050,Kavya Iyer,IND,Import-Export Agent,HIGH
+CUST-NORM-051,Sarah Taylor,IND,Textile Trader,LOW
+CUST-NORM-052,Vivaan Verma,SGP,Software Engineer,LOW
+CUST-NORM-053,Pooja Nair,IND,Student,LOW
+CUST-NORM-054,Reyansh Patel,IND,Freelance Designer,MEDIUM
+CUST-NORM-055,Rhea Mehta,HKG,Retired Civil Servant,LOW
+CUST-NORM-056,Emily Verma,UAE,Jewelry Retailer,LOW
+CUST-NORM-057,David Khan,HKG,Retail Store Owner,LOW
+CUST-NORM-058,Saanvi Gupta,IND,Consultant,LOW
+CUST-NORM-059,Diya Williams,IND,Merchant Exporter,LOW
+CUST-NORM-060,Emily Mehta,IND,Retail Store Owner,LOW
+CUST-NORM-061,Arjun Choudhury,USA,Retail Store Owner,LOW
+CUST-NORM-062,Reyansh Williams,GBR,Import-Export Agent,LOW
+CUST-NORM-063,Michael Sharma,UAE,Student,LOW
+CUST-NORM-064,Elena Mehta,HKG,Consultant,LOW
+CUST-NORM-065,Vihaan Singh,IND,Retired Civil Servant,LOW
+CUST-NORM-066,Saanvi Rao,UAE,Textile Trader,LOW
+CUST-NORM-067,Ananya Verma,IND,Jewelry Retailer,MEDIUM
+CUST-NORM-068,Vivaan Sharma,IND,Consultant,LOW
+CUST-NORM-069,Ananya Nair,SGP,Student,LOW
+CUST-NORM-070,Sarah Sharma,IND,Import-Export Agent,MEDIUM
+CUST-NORM-071,Sarah Verma,GBR,Retired Civil Servant,LOW
+CUST-NORM-072,Tara Singh,IND,Real Estate Broker,MEDIUM
+CUST-NORM-073,Vivaan Choudhury,IND,Retail Store Owner,LOW
+CUST-NORM-074,Isha Johnson,MUS,Import-Export Agent,LOW
+CUST-NORM-075,Sai Nair,MUS,Consultant,MEDIUM
+CUST-NORM-076,Aarav Nair,SGP,Real Estate Broker,LOW
+CUST-NORM-077,Tara Gupta,IND,Import-Export Agent,LOW
+CUST-NORM-078,Vivaan Taylor,IND,Logistics Contractor,LOW
+CUST-NORM-079,Sai Gupta,IND,Retail Store Owner,LOW
+CUST-NORM-080,Ananya Patel,MUS,Textile Trader,LOW
+CUST-SUSP-01,Rajesh Kumar (Trading Sole Prop),IND,Merchant Exporter,HIGH
+CUST-SUSP-02,Apex Bullion Offshore Ltd,UAE,Jewelry Retailer,HIGH
+CUST-SUSP-03,Siddharth V. Consultancy,IND,Consultant,MEDIUM
+CUST-SUSP-04,Manish P. Logistics Network,IND,Logistics Contractor,HIGH
+CUST-SUSP-05,Global Horizon Clearing FZE,SGP,Import-Export Agent,HIGH
+CUST-SUSP-06,Vikram Real Estate Brokers,IND,Real Estate Broker,MEDIUM
+CUST-SUSP-07,Pinnacle Offshore Holdings,MUS,Merchant Exporter,HIGH

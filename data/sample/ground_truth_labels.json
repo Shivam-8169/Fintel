@@ -1,0 +1,47 @@
+{
+  "ACC-SUSP-RAPID01": {
+    "typology": "rapid_fund_movement",
+    "description": "Large inbound wire swiftly followed by nearly full outflow within 3 hours.",
+    "expected_risk": "HIGH"
+  },
+  "ACC-SUSP-HIVAL01": {
+    "typology": "high_value_transfers",
+    "description": "Multiple massive transactions exceeding institutional threshold $50k with minimal aging.",
+    "expected_risk": "CRITICAL"
+  },
+  "ACC-SUSP-STRUCT01": {
+    "typology": "structuring_smurfing",
+    "description": "Successive inbound transfers calibrated just below the regulatory threshold $10,000.",
+    "expected_risk": "HIGH"
+  },
+  "ACC-SUSP-FANIN01": {
+    "typology": "many_to_one_mule_aggregation",
+    "description": "High in-degree fan-in from 7 separate source accounts followed by bulk consolidation.",
+    "expected_risk": "HIGH"
+  },
+  "ACC-SUSP-FANOUT01": {
+    "typology": "one_to_many_fanout_layering",
+    "description": "Massive single deposit fragmented and dispersed to 6 different destination accounts rapidly.",
+    "expected_risk": "HIGH"
+  },
+  "ACC-SUSP-BURST01": {
+    "typology": "high_velocity_burst",
+    "description": "Abnormal burst of 10 wire transfers in less than 2 hours.",
+    "expected_risk": "HIGH"
+  },
+  "ACC-SUSP-CHAIN01": {
+    "typology": "circular_layering_chain",
+    "description": "Circular transaction loop through multiple offshore shell accounts to obscure source.",
+    "expected_risk": "CRITICAL"
+  },
+  "ACC-SUSP-CHAIN02": {
+    "typology": "circular_layering_chain",
+    "description": "Circular transaction loop through multiple offshore shell accounts to obscure source.",
+    "expected_risk": "CRITICAL"
+  },
+  "ACC-SUSP-CHAIN03": {
+    "typology": "circular_layering_chain",
+    "description": "Circular transaction loop through multiple offshore shell accounts to obscure source.",
+    "expected_risk": "CRITICAL"
+  }
+}

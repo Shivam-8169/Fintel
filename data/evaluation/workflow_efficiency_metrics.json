@@ -1,0 +1,62 @@
+{
+  "manual_baseline_minutes": 80.0,
+  "average_autonomous_runtime_seconds": 0.038,
+  "average_time_saved_percentage": 90.0,
+  "cases": [
+    {
+      "case_id": "CASE-59368A",
+      "account_id": "ACC-NORM-001",
+      "risk_score": 100.0,
+      "ai_investigation_seconds": 0.032,
+      "ai_reporting_seconds": 0.018,
+      "total_ai_pipeline_seconds": 0.05,
+      "estimated_manual_minutes": 80.0,
+      "ai_assisted_review_minutes": 8.0,
+      "time_saved_percentage": 90.0
+    },
+    {
+      "case_id": "CASE-493E15",
+      "account_id": "ACC-NORM-002",
+      "risk_score": 100.0,
+      "ai_investigation_seconds": 0.014,
+      "ai_reporting_seconds": 0.014,
+      "total_ai_pipeline_seconds": 0.028,
+      "estimated_manual_minutes": 80.0,
+      "ai_assisted_review_minutes": 8.0,
+      "time_saved_percentage": 90.0
+    },
+    {
+      "case_id": "CASE-3D8249",
+      "account_id": "ACC-NORM-050",
+      "risk_score": 100.0,
+      "ai_investigation_seconds": 0.014,
+      "ai_reporting_seconds": 0.013,
+      "total_ai_pipeline_seconds": 0.028,
+      "estimated_manual_minutes": 80.0,
+      "ai_assisted_review_minutes": 8.0,
+      "time_saved_percentage": 90.0
+    },
+    {
+      "case_id": "CASE-D424F6",
+      "account_id": "ACC-SUSP-RAPID01",
+      "risk_score": 100.0,
+      "ai_investigation_seconds": 0.013,
+      "ai_reporting_seconds": 0.013,
+      "total_ai_pipeline_seconds": 0.026,
+      "estimated_manual_minutes": 80.0,
+      "ai_assisted_review_minutes": 8.0,
+      "time_saved_percentage": 90.0
+    },
+    {
+      "case_id": "CASE-3CA821",
+      "account_id": "ACC-SUSP-FANOUT01",
+      "risk_score": 100.0,
+      "ai_investigation_seconds": 0.046,
+      "ai_reporting_seconds": 0.014,
+      "total_ai_pipeline_seconds": 0.06,
+      "estimated_manual_minutes": 80.0,
+      "ai_assisted_review_minutes": 8.0,
+      "time_saved_percentage": 90.0
+    }
+  ]
+}
