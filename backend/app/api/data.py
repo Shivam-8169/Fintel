@@ -119,25 +119,41 @@ def load_demo_dataset(db: Session = Depends(get_db)):
     with open(os.path.join(OUTPUT_DIR, "transactions.csv"), "rb") as f:
         t_sum = agent.ingest_transactions_csv(f.read(), "transactions.csv")
 
-    notes_csv_path = os.path.join(OUTPUT_DIR, "investigator_notes.csv")
-    if os.path.exists(notes_csv_path):
-        df_notes = pd.read_csv(notes_csv_path)
-        for _, row in df_notes.iterrows():
-            existing = db.query(InvestigatorNote).filter(InvestigatorNote.note_id == str(row["note_id"])).first()
-            if not existing:
-                note = InvestigatorNote(
-                    note_id=str(row["note_id"]),
-                    case_id=str(row.get("case_id", "CASE-DEMO")),
-                    note_text=str(row["note_text"]),
-                    created_at=utcnow()
-                )
-                db.add(note)
-        db.commit()
-
-    # Run detection pipeline
+    # Run detection pipeline FIRST to populate cases
     det_svc = DetectionService(db)
     det_results = det_svc.run_detection_pipeline()
     cases_created = [r for r in det_results if r.case_created]
+
+    # Ingest investigator notes AFTER cases exist
+    notes_csv_path = os.path.join(OUTPUT_DIR, "investigator_notes.csv")
+    notes_added = 0
+    if os.path.exists(notes_csv_path):
+        df_notes = pd.read_csv(notes_csv_path)
+        for _, row in df_notes.iterrows():
+            note_id = str(row["note_id"]).strip()
+            existing = db.query(InvestigatorNote).filter(InvestigatorNote.note_id == note_id).first()
+            if not existing:
+                target_case = None
+                target_account = row.get("target_account")
+                if pd.notna(target_account) and str(target_account).strip():
+                    target_case = db.query(Case).filter(Case.account_id == str(target_account).strip()).first()
+                
+                if not target_case and row.get("case_id") and pd.notna(row.get("case_id")):
+                    target_case = db.query(Case).filter(Case.case_id == str(row["case_id"]).strip()).first()
+
+                if not target_case:
+                    target_case = db.query(Case).order_by(Case.risk_score.desc()).first()
+
+                if target_case:
+                    note = InvestigatorNote(
+                        note_id=note_id,
+                        case_id=target_case.case_id,
+                        note_text=str(row["note_text"]),
+                        created_at=utcnow()
+                    )
+                    db.add(note)
+                    notes_added += 1
+        db.commit()
 
     # Pre-generate sample AI investigation & SAR draft for the top case if needed
     top_case = db.query(Case).order_by(Case.risk_score.desc()).first()
@@ -154,7 +170,7 @@ def load_demo_dataset(db: Session = Depends(get_db)):
         actor_type="SYSTEM",
         actor_id="DemoDataLoader",
         action="DEMO_DATA_LOADED",
-        details=f"Loaded synthetic dataset: {c_sum.records_valid} customers, {a_sum.records_valid} accounts, {t_sum.records_valid} transactions. Flagged {len(cases_created)} cases.",
+        details=f"Loaded synthetic dataset: {c_sum.records_valid} customers, {a_sum.records_valid} accounts, {t_sum.records_valid} transactions, {notes_added} notes. Flagged {len(cases_created)} cases.",
         timestamp=utcnow()
     )
     db.add(audit)
@@ -165,6 +181,7 @@ def load_demo_dataset(db: Session = Depends(get_db)):
         "customers_added": c_sum.records_valid,
         "accounts_added": a_sum.records_valid,
         "transactions_added": t_sum.records_valid,
+        "notes_added": notes_added,
         "cases_flagged": len(cases_created),
         "total_cases": db.query(Case).count()
     }
