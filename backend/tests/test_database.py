@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database.database import Base
 from app.database.models import User, Customer, Account, Transaction, Case, Evidence, DetectionResult, AuditLog
 from app.utils.security import hash_password, verify_password
+from app.utils.datetime_utils import utcnow
 
 
 @pytest.fixture
@@ -42,7 +43,7 @@ def test_customer_account_relationship(db_session):
         account_id="ACC-TEST-1",
         customer_id="CUST-TEST-1",
         account_type="SAVINGS",
-        created_at=datetime.utcnow()
+        created_at=utcnow()
     )
     db_session.add_all([cust, acc])
     db_session.commit()
@@ -54,7 +55,7 @@ def test_customer_account_relationship(db_session):
 
 
 def test_case_evidence_cascade(db_session):
-    acc = Account(account_id="ACC-T-2", account_type="SAVINGS", created_at=datetime.utcnow())
+    acc = Account(account_id="ACC-T-2", account_type="SAVINGS", created_at=utcnow())
     case = Case(case_id="CASE-T-1", account_id="ACC-T-2", risk_score=85.0, risk_level="HIGH", status="NEW")
     ev = Evidence(evidence_id="EVD-T-1", case_id="CASE-T-1", evidence_type="TRANSACTION", source_id="TX-1", description="Test evidence")
 

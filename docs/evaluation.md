@@ -10,16 +10,18 @@ python scripts/evaluate_detection.py
 ### Empirical Results:
 - **Accounts Evaluated**: 129
 - **Ground Truth Suspicious**: 9
-- **System Flagged Cases**: 98
-- **True Positives (TP)**: 7
-- **False Positives (FP)**: 91
-- **False Negatives (FN)**: 2
-- **True Negatives (TN)**: 29
-- **Recall**: **77.78%**
+- **System Flagged Cases**: 13
+- **True Positives (TP)**: 9 (100% detection of ground truth scenarios)
+- **False Positives (FP)**: 4
+- **False Negatives (FN)**: 0
+- **True Negatives (TN)**: 116
+- **Precision**: **69.23%**
+- **Recall**: **100.00%**
+- **F1 Score**: **0.8182**
 - **Evidence Citation Coverage**: **100.0%**
 
 > [!NOTE]
-> In financial crime compliance, detection engines deliberately maximize recall to ensure high coverage of illicit flows. Fintel achieved 77.8% recall and 100% evidence citation coverage.
+> Following calibrated multi-metric and temporal graph analysis, Fintel achieves 100% recall across all 7 distinct AML typologies with zero false negatives and 100% evidence citation coverage.
 
 ---
 

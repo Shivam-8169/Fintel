@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, Shield, Search, RefreshCw, FileClock } from 'lucide-react';
+import { RefreshCw, Search, X, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
 import { AuditLog } from '../types';
 import { AuditTimeline } from '../components/AuditTimeline';
+import { ComplianceTerm } from '../components/ComplianceTerm';
 
 export const AuditLogPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -37,54 +38,83 @@ export const AuditLogPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-2 border-b border-[var(--border-default)]">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100 flex items-center space-x-2">
-            <FileClock className="w-6 h-6 text-purple-400" />
-            <span>Compliance Audit Trail</span>
+          {/* Eyebrow / Small section label */}
+          <div className="flex items-center space-x-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-1">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Accountability & Activity History</span>
+          </div>
+
+          {/* Main page title */}
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
+            <span>Activity History</span>
+            <ComplianceTerm term="Audit Trail" />
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Immutable forensic record of all algorithmic triggers, data ingestions, agent executions, and human investigator determinations.
+
+          {/* Description */}
+          <p className="text-xs text-[var(--text-muted)] mt-1.5 max-w-2xl leading-relaxed">
+            Permanent, unchangeable record of all user actions, automated scan events, file uploads, and investigator decisions.
           </p>
         </div>
+
+        {/* Secondary Professional Action */}
         <button
           onClick={loadLogs}
-          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center space-x-1.5 transition-colors self-start sm:self-auto"
+          disabled={loading}
+          className="btn-secondary self-start sm:self-auto shrink-0"
+          title="Refresh activity history log"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Trail</span>
+          <RefreshCw className={`w-3.5 h-3.5 text-[var(--text-muted)] ${loading ? 'animate-spin' : ''}`} />
+          <span>Refresh History</span>
         </button>
       </div>
 
-      <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center gap-3 text-xs">
+      {/* SEARCH BAR */}
+      <div className="p-3 sm:p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] shadow-xs flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Action, Actor, Case ID, or Details..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:ring-1 focus:ring-purple-400 font-mono"
+            placeholder="Search actions, users, case IDs..."
+            className="w-full pl-9 pr-9 py-2 rounded-lg bg-[var(--bg-input)] border border-[var(--border-default)] text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent transition-all"
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-0.5 rounded transition-colors"
+              title="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-        <div className="text-slate-400 font-mono text-xs hidden sm:block">
-          Showing {filteredLogs.length} events
+
+        <div className="text-[var(--text-muted)] font-mono text-xs hidden sm:flex items-center gap-1.5 shrink-0 px-2 py-1 rounded bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)]">
+          <span className="font-semibold text-[var(--text-primary)]">{filteredLogs.length}</span>
+          <span>{filteredLogs.length === 1 ? 'event' : 'events'}</span>
         </div>
       </div>
 
+      {/* EMPTY / LOADING / ERROR STATES */}
       {loading ? (
-        <div className="flex items-center justify-center min-h-[40vh]">
+        <div className="flex items-center justify-center min-h-[35vh] rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] p-8">
           <div className="text-center space-y-3">
-            <div className="w-8 h-8 border-3 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs text-slate-400">Loading audit ledger...</p>
+            <div className="w-7 h-7 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs text-[var(--text-muted)] font-medium">Fetching activity history records...</p>
           </div>
         </div>
       ) : (
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
+        <div className="p-4 sm:p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-default)] shadow-xs">
           <AuditTimeline logs={filteredLogs} />
         </div>
       )}
     </div>
   );
 };
+
+export default AuditLogPage;

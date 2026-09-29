@@ -37,7 +37,7 @@ This document defines the schema, field descriptions, constraints, and typologie
 | `transaction_id` | String (PK) | Unique synthetic transaction identifier | Format: `TX-XXXXX` |
 | `sender_account` | String (FK) | Originating account ID | References `accounts.account_id` |
 | `receiver_account` | String (FK) | Beneficiary account ID | References `accounts.account_id` |
-| `amount` | Float | Transaction monetary volume (INR/USD equivalent) | Positive numeric, 2 decimal places |
+| `amount` | Float | Transaction monetary volume in Indian Rupees (₹) | Positive numeric, 2 decimal places |
 | `timestamp` | DateTime | Execution timestamp of transaction | Format: `YYYY-MM-DD HH:MM:SS` |
 | `transaction_type` | String | Rail or settlement mechanism | `WIRE_TRANSFER`, `NEFT`, `RTGS`, `UPI`, `ACH` |
 
@@ -60,8 +60,8 @@ This document defines the schema, field descriptions, constraints, and typologie
 The generator implants 7 benchmark AML typologies:
 
 1. **Rapid Fund Movement (Pass-Through)**: Account receives large sum and routes >95% out within a narrow time window (<3 hours).
-2. **High-Value Outliers**: Significant single transaction amounts exceeding institutional risk threshold ($50,000+).
-3. **Structuring / Smurfing**: Successive incoming payments calibrated just beneath regulatory thresholds ($8,000–$9,900) to evade CTR triggers.
+2. **High-Value Outliers**: Significant single transaction amounts exceeding institutional risk threshold (₹5,00,000+).
+3. **Structuring / Smurfing**: Successive incoming payments calibrated just beneath regulatory thresholds (₹8,00,000–₹9,90,000) to evade CTR triggers.
 4. **Many-to-One Mule Aggregation**: Multiple distinct entities funneling small-to-medium transfers into a central collector account, followed by consolidated exit.
 5. **One-to-Many Dispersion / Layering**: Single high deposit immediately split into numerous outbound transfers to disperse funds.
 6. **High Velocity Bursts**: Abnormal burst frequency of transactions (>8 transfers within a 2-hour window).

@@ -1,9 +1,14 @@
 export interface User {
-  id: number;
+  id?: number;
+  user_id?: string;
   name: string;
   email: string;
-  role: string;
-  created_at: string;
+  role: 'Admin' | 'Lead Investigator' | 'Investigator' | string;
+  status?: 'Active' | 'Invited' | 'Deactivated' | string;
+  invited_by?: string;
+  invited_at?: string;
+  last_login_at?: string;
+  created_at?: string;
 }
 
 export interface AuthResponse {
@@ -12,6 +17,28 @@ export interface AuthResponse {
   role: string;
   name: string;
   email: string;
+  user_id?: string;
+  status?: string;
+}
+
+export interface Invite {
+  invite_id: string;
+  email: string;
+  role: string;
+  token: string;
+  status: 'Pending' | 'Accepted' | 'Expired' | string;
+  created_by: string;
+  created_at: string;
+  expires_at: string;
+  invite_link?: string;
+}
+
+export interface ValidateInviteResponse {
+  valid: boolean;
+  email: string;
+  role: string;
+  name?: string;
+  expires_at: string;
 }
 
 export interface Customer {
@@ -46,11 +73,25 @@ export interface EvidenceItem {
   description: string;
 }
 
+export interface TransactionItem {
+  transaction_id: string;
+  sender_account: string;
+  receiver_account: string;
+  amount: number;
+  timestamp: string;
+  transaction_type: string;
+  detection_flag?: string;
+  evidence_id?: string;
+  is_suspicious?: boolean;
+}
+
 export interface InvestigatorNote {
   note_id: string;
   case_id: string;
   note_text: string;
   created_at: string;
+  author_name?: string;
+  author_role?: string;
 }
 
 export interface CaseListItem {
@@ -60,10 +101,13 @@ export interface CaseListItem {
   risk_score: number;
   risk_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   status: 'NEW' | 'UNDER_INVESTIGATION' | 'REPORT_DRAFTED' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CLOSED';
+  assigned_to?: string;
   created_at: string;
   updated_at: string;
   indicator_count: number;
   evidence_count: number;
+  primary_typology?: string;
+  total_amount?: number;
 }
 
 export interface CaseDetail {
@@ -72,6 +116,7 @@ export interface CaseDetail {
   risk_score: number;
   risk_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   status: 'NEW' | 'UNDER_INVESTIGATION' | 'REPORT_DRAFTED' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'CLOSED';
+  assigned_to?: string;
   created_at: string;
   updated_at: string;
   account?: Account;
@@ -79,6 +124,7 @@ export interface CaseDetail {
   indicators: IndicatorResult[];
   evidence: EvidenceItem[];
   notes: InvestigatorNote[];
+  transactions?: TransactionItem[];
   has_investigation: boolean;
   has_report: boolean;
   report_status?: string;
@@ -247,3 +293,161 @@ export interface DashboardSummary {
     status: string;
   }>;
 }
+
+export interface StatementColumnMapping {
+  date?: string | null;
+  description?: string | null;
+  amount?: string | null;
+  debit?: string | null;
+  credit?: string | null;
+  account_id?: string | null;
+  counterparty?: string | null;
+  balance?: string | null;
+}
+
+export interface StatementPreviewResponse {
+  filename: string;
+  file_size_bytes: number;
+  total_rows: number;
+  columns: string[];
+  sample_rows: Record<string, string>[];
+  suggested_mapping: StatementColumnMapping;
+}
+
+export interface SuspiciousFinding {
+  finding_id: string;
+  case_id?: string | null;
+  account_id: string;
+  typology: string;
+  risk_level: string;
+  risk_score: number;
+  explanation: string;
+  triggers: string[];
+  supporting_evidence_ids: string[];
+  key_metrics: Record<string, any>;
+}
+
+export interface PipelineStage {
+  stage: string;
+  name: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  details: string;
+}
+
+export interface StatementAnalysisResult {
+  status: string;
+  transactions_analyzed: number;
+  potentially_suspicious_transactions: number;
+  potentially_suspicious_accounts: number;
+  cases_generated: number;
+  evidence_items: number;
+  pipeline_stages: PipelineStage[];
+  findings: SuspiciousFinding[];
+  generated_case_ids: string[];
+}
+
+export interface NormalizedTransaction {
+  transaction_id: string;
+  account_id: string;
+  timestamp: string;
+  amount: number;
+  counterparty: string;
+  notes?: string;
+  direction?: 'DEBIT' | 'CREDIT';
+  is_suspicious?: boolean;
+  flags?: string[];
+  anomaly_score?: number;
+}
+
+export interface EntityRiskBreakdown {
+  indicator: string;
+  score: number;
+  rationale: string;
+}
+
+export interface EntityRiskScore {
+  entityId: string;
+  accountType?: string;
+  customerName?: string;
+  compositeScore: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  breakdown: EntityRiskBreakdown[];
+}
+
+export interface EvidenceMatrixItem {
+  evidenceId: string;
+  transactionId: string;
+  sourceRecord: NormalizedTransaction;
+  findingClaim: string;
+  indicatorType: string;
+  timestamp: string;
+}
+
+export interface FIU_IND_SARDraft {
+  report_ref: string;
+  reporting_entity: {
+    institution_name: string;
+    institution_code: string;
+    reporting_officer: string;
+    filing_date: string;
+  };
+  suspect_details: {
+    account_number: string;
+    customer_id: string;
+    full_name: string;
+    pan_or_identifier: string;
+    kyc_risk_rating: string;
+    jurisdiction: string;
+  };
+  suspicious_summary: {
+    gross_turnover: number;
+    suspicious_volume: number;
+    transaction_count: number;
+    detection_window: string;
+    fiu_typology_code: string;
+    typology_description: string;
+  };
+  narrative_of_suspicion: string;
+  grounded_reasoning_points: string[];
+  uncertainty_disclosures: string[];
+  recommended_action: string;
+}
+
+export interface PipelineState {
+  currentStep: number;
+  maxCompletedStep: number;
+  file: File | null;
+  fileName: string;
+  fileSize: number;
+  ingestedRecords: NormalizedTransaction[];
+  totalRecords: number;
+  accountCount: number;
+  flaggedTransactions: NormalizedTransaction[];
+  entityRisk: EntityRiskScore | null;
+  graphData: GraphData | null;
+  investigationNarrative: {
+    summary: string;
+    findings: string[];
+    typologies: string[];
+    reasoning: string[];
+    uncertainties: string[];
+    citedEvidenceIds: string[];
+  } | null;
+  evidenceItems: EvidenceMatrixItem[];
+  fiuSarDraft: FIU_IND_SARDraft | null;
+  humanReview: {
+    status: 'DRAFT' | 'APPROVED' | 'REJECTED';
+    reviewedBy: string;
+    timestamp?: string;
+    investigatorNotes: string;
+    checklist: {
+      suspectKycVerified: boolean;
+      evidenceValidated: boolean;
+      typologyConfirmed: boolean;
+      narrativeApproved: boolean;
+    };
+  };
+  generatedCaseId?: string;
+}
+
+

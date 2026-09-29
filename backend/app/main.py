@@ -11,13 +11,28 @@ from sqlalchemy import text
 
 from app.config.settings import settings
 from app.database.database import engine, Base, get_db
-from app.api import auth, data, cases, graph, investigation, reports, audit, dashboard
+from app.api import (
+    auth,
+    data,
+    cases,
+    graph,
+    investigation,
+    reports,
+    audit,
+    dashboard,
+    detection_api,
+    agents_api,
+    settings_api,
+    evaluation_api,
+    team
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure database schema is initialized on startup
-    Base.metadata.create_all(bind=engine)
+    # Ensure database schema and column migrations are applied on startup
+    from app.database.database import init_db_schema
+    init_db_schema()
     yield
 
 
@@ -29,23 +44,34 @@ app = FastAPI(
 )
 
 # CORS Middleware
+cors_origins = settings.cors_origins_list if settings.cors_origins_list else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permits local dev frontends
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "X-Report-Filename", "content-disposition", "x-report-filename"],
 )
 
 # Include Routers under /api
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(data.router, prefix=settings.API_V1_STR)
+# Ingestion alias so /api/ingestion routes to data endpoints
+app.include_router(data.router, prefix=f"{settings.API_V1_STR}/ingestion")
 app.include_router(cases.router, prefix=settings.API_V1_STR)
 app.include_router(graph.router, prefix=settings.API_V1_STR)
 app.include_router(investigation.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router, prefix=settings.API_V1_STR)
+app.include_router(reports.reports_router, prefix=settings.API_V1_STR)
 app.include_router(audit.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router, prefix=settings.API_V1_STR)
+app.include_router(detection_api.router, prefix=settings.API_V1_STR)
+app.include_router(agents_api.router, prefix=settings.API_V1_STR)
+app.include_router(settings_api.router, prefix=settings.API_V1_STR)
+app.include_router(evaluation_api.router, prefix=settings.API_V1_STR)
+app.include_router(team.router, prefix=settings.API_V1_STR)
 
 
 @app.get(f"{settings.API_V1_STR}/health", tags=["Health"])

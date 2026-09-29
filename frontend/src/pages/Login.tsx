@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, Lock, Mail, ArrowRight, UserCheck, KeyRound } from 'lucide-react';
+import { ShieldAlert, UserCheck, KeyRound, ArrowRight, AlertTriangle } from 'lucide-react';
 import { api } from '../services/api';
 import { User } from '../types';
+
+import { FintelLogo } from '../components/FintelLogo';
+import { ComplianceTerm } from '../components/ComplianceTerm';
+import { LABELS } from '../constants/labels';
 
 interface LoginProps {
   onLoginSuccess: (user: User, token: string) => void;
@@ -15,13 +19,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeLogin = async (loginEmail: string, loginPass: string) => {
     setError('');
     setLoading(true);
 
     try {
-      const res = await api.login(email, password);
+      const res = await api.login(loginEmail, loginPass);
       localStorage.setItem('fintel_token', res.access_token);
       const user = await api.getCurrentUser();
       onLoginSuccess(user, res.access_token);
@@ -33,119 +36,156 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleDemoSelect = (role: 'INVESTIGATOR' | 'ADMIN') => {
-    if (role === 'INVESTIGATOR') {
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeLogin(email, password);
+  };
+
+  const handleQuickLogin = (role: 'LEAD' | 'ADMIN' | 'INVESTIGATOR') => {
+    if (role === 'LEAD') {
       setEmail('investigator@fintel.local');
       setPassword('investigator123');
+      executeLogin('investigator@fintel.local', 'investigator123');
+    } else if (role === 'INVESTIGATOR') {
+      setEmail('priya.patel@fintel.local');
+      setPassword('investigator123');
+      executeLogin('priya.patel@fintel.local', 'investigator123');
     } else {
       setEmail('admin@fintel.local');
       setPassword('admin123');
+      executeLogin('admin@fintel.local', 'admin123');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-6 relative overflow-hidden">
-      {/* Background Ambient Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div className="w-full max-w-md relative z-10 space-y-6">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-xl shadow-cyan-500/20">
-            <ShieldAlert className="w-8 h-8 text-slate-950 font-bold" />
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] flex flex-col justify-center items-center px-4 py-12 select-none transition-colors duration-200">
+      <div className="w-full max-w-[420px] bg-[var(--bg-card)] border border-[var(--border-default)] rounded-2xl p-7 sm:p-9 shadow-2xl space-y-5">
+        {/* Brand Icon & Heading */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <FintelLogo variant="mark" size="xl" useAccentColor={true} />
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-100">FINTEL AML/CFT</h1>
-          <p className="text-xs text-slate-400">
-            Autonomous Financial Crime Investigation & SAR Drafting Platform
-          </p>
+          <div>
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-2xl font-black tracking-wider text-[var(--text-primary)] font-sans">
+                {LABELS.app.name}
+              </h1>
+              <ComplianceTerm term="AML/CFT" />
+            </div>
+            <p className="text-xs font-semibold text-[var(--color-accent)] mt-1.5 uppercase tracking-wide">
+              {LABELS.app.title}
+            </p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+              {LABELS.app.subtitle}
+            </p>
+          </div>
         </div>
 
-        {/* Login Card */}
-        <div className="glass-panel-elevated p-8 rounded-3xl border border-slate-800 space-y-6">
-          <div className="space-y-1">
-            <h2 className="text-lg font-bold text-slate-100">Investigator Portal</h2>
-            <p className="text-xs text-slate-400">Sign in to access case triage, graph analysis, and SAR drafts</p>
+        {/* Error Alert */}
+        {error && (
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-3.5">
+          <div className="space-y-1 text-left">
+            <label className="block text-xs font-medium text-[var(--text-secondary)]">
+              Corporate Email
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@financial-institution.com"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-default)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+            />
           </div>
 
-          {error && (
-            <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/50 text-red-300 text-xs">
-              {error}
+          <div className="space-y-1 text-left">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-medium text-[var(--text-secondary)]">
+                Security Password
+              </label>
             </div>
-          )}
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-default)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
+            />
+          </div>
 
-          <form onSubmit={handleLogin} className="space-y-4 text-xs">
-            <div className="space-y-1.5">
-              <label className="text-slate-300 font-medium">Compliance Email</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-400 font-mono"
-                  placeholder="name@fintel.local"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-slate-300 font-medium">Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-400 font-mono"
-                  placeholder="••••••••••••"
-                />
-              </div>
-            </div>
-
+          {/* Primary Action Button */}
+          <div className="pt-1.5">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 flex items-center justify-center space-x-2 shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-50"
+              className="btn-primary w-full py-2.5 rounded-lg font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <span>{loading ? 'Authenticating...' : 'Sign In to Investigation Dashboard'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>{loading ? 'Authenticating...' : 'Sign In to Fintel'}</span>
+              {!loading && <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />}
             </button>
-          </form>
-
-          {/* Quick Demo Fill Buttons */}
-          <div className="pt-4 border-t border-slate-800 space-y-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-center">
-              Quick Academic Demo Access
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoSelect('INVESTIGATOR')}
-                className="p-2 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-cyan-500/50 text-[11px] text-slate-300 flex items-center justify-center space-x-1.5 transition-colors"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Investigator</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoSelect('ADMIN')}
-                className="p-2 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-purple-500/50 text-[11px] text-slate-300 flex items-center justify-center space-x-1.5 transition-colors"
-              >
-                <KeyRound className="w-3.5 h-3.5 text-purple-400" />
-                <span>Admin</span>
-              </button>
-            </div>
           </div>
+        </form>
+
+        {/* Divider */}
+        <div className="relative flex items-center justify-center my-3">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-[var(--border-default)]" />
+          </div>
+          <span className="relative px-2.5 bg-[var(--bg-card)] text-[11px] text-[var(--text-muted)]">
+            Quick Sign-In by Role
+          </span>
         </div>
 
-        {/* Disclaimer Footer */}
-        <div className="text-center text-[11px] text-slate-400">
-          <p>Academic PBL Simulation. No live core-banking connections or real PII.</p>
+        {/* Role Quick Switch Buttons */}
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => handleQuickLogin('LEAD')}
+            className="w-full py-2 px-3.5 rounded-lg border border-[var(--border-default)] hover:border-[var(--border-hover)] bg-[var(--bg-card-subtle)] hover:bg-[var(--bg-card)] text-xs font-medium text-[var(--text-secondary)] flex items-center justify-center relative transition-colors cursor-pointer"
+          >
+            <UserCheck className="w-3.5 h-3.5 text-blue-400 absolute left-3.5" />
+            <span>Sign in as Lead Investigator (Shivam Sharma)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleQuickLogin('INVESTIGATOR')}
+            className="w-full py-2 px-3.5 rounded-lg border border-[var(--border-default)] hover:border-[var(--border-hover)] bg-[var(--bg-card-subtle)] hover:bg-[var(--bg-card)] text-xs font-medium text-[var(--text-secondary)] flex items-center justify-center relative transition-colors cursor-pointer"
+          >
+            <UserCheck className="w-3.5 h-3.5 text-emerald-400 absolute left-3.5" />
+            <span>Sign in as Investigator (Priya Patel)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleQuickLogin('ADMIN')}
+            className="w-full py-2 px-3.5 rounded-lg border border-[var(--border-default)] hover:border-[var(--border-hover)] bg-[var(--bg-card-subtle)] hover:bg-[var(--bg-card)] text-xs font-medium text-[var(--text-secondary)] flex items-center justify-center relative transition-colors cursor-pointer"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-purple-400 absolute left-3.5" />
+            <span>Sign in as Administrator (Compliance Officer)</span>
+          </button>
+        </div>
+
+        {/* Admin-invite notice */}
+        <div className="p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-default)] text-[11px] text-[var(--text-muted)] text-center leading-relaxed">
+          <span className="font-semibold text-[var(--text-secondary)]">Strict Admin-Invite Access:</span> Public self-registration is disabled. New accounts are provisioned via Administrator invitation links.
+        </div>
+
+        {/* Security watermark */}
+        <div className="pt-1 text-center text-[10px] text-[var(--text-muted)]">
+          Fintel • Financial Crime Investigation Tool
         </div>
       </div>
     </div>
   );
 };
+
+export default Login;

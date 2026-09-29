@@ -15,6 +15,7 @@ from app.graph.builder import GraphBuilder
 from app.detection.rules import RuleEvaluator
 from app.detection.scoring import RiskScorer
 from app.schemas.detection import DetectionAnalysisResponse, IndicatorResult, EvidenceItemSchema
+from app.utils.datetime_utils import utcnow
 
 
 class DetectionService:
@@ -57,8 +58,8 @@ class DetectionService:
                         risk_score=risk_score,
                         risk_level=risk_level,
                         status="NEW",
-                        created_at=datetime.utcnow(),
-                        updated_at=datetime.utcnow()
+                        created_at=utcnow(),
+                        updated_at=utcnow()
                     )
                     self.db.add(case)
                     case_created = True
@@ -70,14 +71,14 @@ class DetectionService:
                         actor_id="DetectionAgent",
                         action="CASE_CREATED",
                         details=f"Case opened automatically for account {acc.account_id} with score {risk_score} ({risk_level}).",
-                        timestamp=datetime.utcnow()
+                        timestamp=utcnow()
                     )
                     self.db.add(audit)
                 else:
                     case_id = case.case_id
                     case.risk_score = risk_score
                     case.risk_level = risk_level
-                    case.updated_at = datetime.utcnow()
+                    case.updated_at = utcnow()
 
                 # Flush to get case available
                 self.db.flush()
@@ -109,6 +110,12 @@ class DetectionService:
                     self.db.add(ev_model)
 
                 self.db.commit()
+            else:
+                # Prune obsolete unreviewed NEW cases if score falls below threshold
+                obsolete_case = self.db.query(Case).filter(Case.account_id == acc.account_id, Case.status == "NEW").first()
+                if obsolete_case:
+                    self.db.delete(obsolete_case)
+                    self.db.commit()
 
             results.append(DetectionAnalysisResponse(
                 account_id=acc.account_id,

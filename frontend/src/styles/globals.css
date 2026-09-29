@@ -1,0 +1,371 @@
+/* =========================================================
+   FINTEL COMPLIANCE CONSOLE - CENTRALIZED THEME TOKENS
+   Supports: Dark / Light / System Mode + 5 Custom Accent Colors
+   ========================================================= */
+
+/* Smooth Transition for Global Theme & Accent Changes */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.22s ease, border-color 0.22s ease, color 0.18s ease, box-shadow 0.22s ease !important;
+  transition-delay: 0s !important;
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:root {
+  /* Default to Dark Mode Palette */
+  --bg-app: #080D18;
+  --bg-sidebar: #0B1220;
+  --bg-header: #0F172A;
+  --bg-card: #111C2E;
+  --bg-card-subtle: #0B1220;
+  --bg-card-elevated: #172338;
+  --bg-card-hover: #1A2940;
+  --bg-table: #0F172A;
+  --bg-table-alt: #121E31;
+  --bg-table-hover: #1A2940;
+  --bg-input: #101A2B;
+  --bg-input-focus: #142137;
+
+  --text-primary: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-placeholder: #8493A8;
+  --text-inverse: #080D18;
+  --text-sidebar: #F1F5F9;
+  --text-sidebar-muted: #94A3B8;
+
+  --border-default: #263449;
+  --border-subtle: #1A2433;
+  --border-strong: #334155;
+  --border-sidebar: #1A2433;
+
+  --color-blue: #3B82F6;
+  --color-cyan: #22D3EE;
+  --color-accent: #3B82F6;
+  --color-accent-hover: #2563EB;
+  --color-accent-subtle: rgba(59, 130, 246, 0.14);
+  --color-accent-border: rgba(59, 130, 246, 0.35);
+  --color-accent-glow: rgba(59, 130, 246, 0.3);
+  --color-accent-text: #60A5FA;
+
+  --color-success: #34D399;
+  --color-success-bg: rgba(52, 211, 153, 0.12);
+  --color-success-border: rgba(52, 211, 153, 0.3);
+
+  --color-warning: #FBBF24;
+  --color-warning-bg: rgba(251, 191, 36, 0.12);
+  --color-warning-border: rgba(251, 191, 36, 0.3);
+  --color-warning-text: #FDE68A;
+
+  --color-error: #FB7185;
+  --color-error-bg: rgba(251, 113, 133, 0.12);
+  --color-error-border: rgba(251, 113, 133, 0.3);
+
+  /* Shadcn standard theme variables */
+  --background: #080D18;
+  --foreground: #F1F5F9;
+  --card: #111C2E;
+  --card-foreground: #F1F5F9;
+  --popover: #172338;
+  --popover-foreground: #F1F5F9;
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #172338;
+  --secondary-foreground: #F1F5F9;
+  --muted: #1A2433;
+  --muted-foreground: #94A3B8;
+  --accent: #172338;
+  --accent-foreground: #3B82F6;
+  --destructive: #FB7185;
+  --destructive-foreground: #FFFFFF;
+  --border: #263449;
+  --input: #101A2B;
+  --ring: #3B82F6;
+  --sidebar: #0B1220;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-border: #1A2433;
+
+  /* Font Families */
+  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-default);
+  --shadow-elevated: 0 10px 30px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-default);
+}
+
+/* =========================================================
+   MODE 1: DARK MODE
+   ========================================================= */
+.dark,
+[data-theme="dark"] {
+  --bg-app: #080D18;
+  --bg-sidebar: #0B1220;
+  --bg-header: #0F172A;
+  --bg-card: #111C2E;
+  --bg-card-subtle: #0B1220;
+  --bg-card-elevated: #172338;
+  --bg-card-hover: #1A2940;
+  --bg-table: #0F172A;
+  --bg-table-alt: #121E31;
+  --bg-table-hover: #1A2940;
+  --bg-input: #101A2B;
+  --bg-input-focus: #142137;
+
+  --text-primary: #F1F5F9;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-placeholder: #8493A8;
+  --text-inverse: #080D18;
+  --text-sidebar: #F1F5F9;
+  --text-sidebar-muted: #94A3B8;
+
+  --border-default: #263449;
+  --border-subtle: #1A2433;
+  --border-strong: #334155;
+  --border-sidebar: #1A2433;
+
+  --color-blue: #3B82F6;
+  --color-cyan: #22D3EE;
+
+  --color-success: #34D399;
+  --color-success-bg: rgba(52, 211, 153, 0.12);
+  --color-success-border: rgba(52, 211, 153, 0.3);
+
+  --color-warning: #FBBF24;
+  --color-warning-bg: rgba(251, 191, 36, 0.12);
+  --color-warning-border: rgba(251, 191, 36, 0.3);
+  --color-warning-text: #FDE68A;
+
+  --color-error: #FB7185;
+  --color-error-bg: rgba(251, 113, 133, 0.12);
+  --color-error-border: rgba(251, 113, 133, 0.3);
+
+  --background: #080D18;
+  --foreground: #F1F5F9;
+  --card: #111C2E;
+  --card-foreground: #F1F5F9;
+  --popover: #172338;
+  --popover-foreground: #F1F5F9;
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #172338;
+  --secondary-foreground: #F1F5F9;
+  --muted: #1A2433;
+  --muted-foreground: #94A3B8;
+  --accent: #172338;
+  --accent-foreground: #3B82F6;
+  --destructive: #FB7185;
+  --destructive-foreground: #FFFFFF;
+  --border: #263449;
+  --input: #101A2B;
+  --ring: #3B82F6;
+  --sidebar: #0B1220;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-border: #1A2433;
+
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-default);
+  --shadow-elevated: 0 10px 30px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-default);
+}
+
+/* =========================================================
+   MODE 2: LIGHT MODE
+   ========================================================= */
+.light,
+[data-theme="light"] {
+  --bg-app: #F8FAFC;
+  --bg-sidebar: #FFFFFF;
+  --bg-header: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-subtle: #F8FAFC;
+  --bg-card-elevated: #FFFFFF;
+  --bg-card-hover: #F1F5F9;
+  --bg-table: #FFFFFF;
+  --bg-table-alt: #F8FAFC;
+  --bg-table-hover: #F1F5F9;
+  --bg-input: #FFFFFF;
+  --bg-input-focus: #FFFFFF;
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-placeholder: #94A3B8;
+  --text-inverse: #FFFFFF;
+  --text-sidebar: #0F172A;
+  --text-sidebar-muted: #64748B;
+
+  --border-default: #E2E8F0;
+  --border-subtle: #F1F5F9;
+  --border-strong: #CBD5E1;
+  --border-sidebar: #E2E8F0;
+
+  --color-blue: #2563EB;
+  --color-cyan: #0891B2;
+
+  --color-success: #059669;
+  --color-success-bg: rgba(5, 150, 105, 0.08);
+  --color-success-border: rgba(5, 150, 105, 0.25);
+
+  --color-warning: #B45309;
+  --color-warning-bg: rgba(180, 83, 9, 0.08);
+  --color-warning-border: rgba(180, 83, 9, 0.25);
+  --color-warning-text: #78350F;
+
+  --color-error: #E11D48;
+  --color-error-bg: rgba(225, 29, 72, 0.08);
+  --color-error-border: rgba(225, 29, 72, 0.25);
+
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #F1F5F9;
+  --accent-foreground: #2563EB;
+  --destructive: #E11D48;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --input: #FFFFFF;
+  --ring: #2563EB;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0F172A;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-border: #E2E8F0;
+
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-elevated: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+}
+
+/* =========================================================
+   ACCENT COLOR 0: TWITTER BLUE (REMIX SIGNATURE)
+   ========================================================= */
+[data-accent="twitter"] {
+  --color-accent: #1C9CF0;
+  --color-accent-hover: #1A8CD8;
+  --color-accent-subtle: rgba(28, 156, 240, 0.12);
+  --color-accent-border: rgba(28, 156, 240, 0.3);
+  --color-accent-glow: rgba(28, 156, 240, 0.25);
+  --color-accent-text: #1C9CF0;
+}
+
+/* =========================================================
+   ACCENT COLOR 1: COBALT BLUE
+   ========================================================= */
+[data-accent="blue"] {
+  --color-accent: #3B82F6;
+  --color-accent-hover: #2563EB;
+  --color-accent-subtle: rgba(59, 130, 246, 0.12);
+  --color-accent-border: rgba(59, 130, 246, 0.3);
+  --color-accent-glow: rgba(59, 130, 246, 0.25);
+  --color-accent-text: #60A5FA;
+}
+
+/* =========================================================
+   ACCENT COLOR 2: ELECTRIC PURPLE
+   ========================================================= */
+[data-accent="purple"] {
+  --color-accent: #8B5CF6;
+  --color-accent-hover: #7C3AED;
+  --color-accent-subtle: rgba(139, 92, 246, 0.12);
+  --color-accent-border: rgba(139, 92, 246, 0.3);
+  --color-accent-glow: rgba(139, 92, 246, 0.25);
+  --color-accent-text: #A78BFA;
+}
+
+/* =========================================================
+   ACCENT COLOR 3: TWITTER / EMERALD GREEN
+   ========================================================= */
+[data-accent="green"] {
+  --color-accent: #00B87A;
+  --color-accent-hover: #009663;
+  --color-accent-subtle: rgba(0, 184, 122, 0.12);
+  --color-accent-border: rgba(0, 184, 122, 0.3);
+  --color-accent-glow: rgba(0, 184, 122, 0.25);
+  --color-accent-text: #00B87A;
+}
+
+/* =========================================================
+   ACCENT COLOR 4: SOLAR ORANGE
+   ========================================================= */
+[data-accent="orange"] {
+  --color-accent: #F97316;
+  --color-accent-hover: #EA580C;
+  --color-accent-subtle: rgba(249, 115, 22, 0.12);
+  --color-accent-border: rgba(249, 115, 22, 0.3);
+  --color-accent-glow: rgba(249, 115, 22, 0.25);
+  --color-accent-text: #FB923C;
+}
+
+/* =========================================================
+   ACCENT COLOR 5: TWITTER PINK / RED
+   ========================================================= */
+[data-accent="red"] {
+  --color-accent: #F4212E;
+  --color-accent-hover: #E0245E;
+  --color-accent-subtle: rgba(244, 33, 46, 0.12);
+  --color-accent-border: rgba(244, 33, 46, 0.3);
+  --color-accent-glow: rgba(244, 33, 46, 0.25);
+  --color-accent-text: #F4212E;
+}
+
+html, body {
+  background-color: var(--bg-app) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Tabular Numbers for Data Accuracy */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}

@@ -25,6 +25,8 @@ frontend/dist-ssr/
 scratch/
 tmp/
 .cache/
+zen-linen.md
+exports/
 
 # IDE / Editor
 .vscode/

@@ -11,6 +11,7 @@ from app.database.database import Base
 from app.database.models import Account, Case, DetectionResult, Evidence, Customer
 from app.agents.investigation_agent import InvestigationAgent
 from app.agents.reporting_agent import ReportingAgent
+from app.utils.datetime_utils import utcnow
 
 
 @pytest.fixture
@@ -21,7 +22,7 @@ def agent_db():
     session = TestingSessionLocal()
 
     cust = Customer(customer_id="CUST-1", name="Vikram Enterprises", country="IND", risk_level="HIGH")
-    acc = Account(account_id="ACC-VIKRAM", customer_id="CUST-1", account_type="BUSINESS", created_at=datetime.utcnow())
+    acc = Account(account_id="ACC-VIKRAM", customer_id="CUST-1", account_type="BUSINESS", created_at=utcnow())
     case = Case(case_id="CASE-AGENT-TEST", account_id="ACC-VIKRAM", risk_score=85.0, risk_level="HIGH", status="NEW")
 
     det = DetectionResult(case_id="CASE-AGENT-TEST", indicator_name="rapid_fund_movement", score=30.0, explanation="Rapid pass-through observed")

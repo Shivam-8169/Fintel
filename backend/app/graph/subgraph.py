@@ -67,6 +67,7 @@ class SubgraphExtractor:
                 customer_id=attrs.get("customer_id"),
                 customer_name=attrs.get("customer_name", "Unknown Entity"),
                 risk_level=attrs.get("risk_level", "LOW"),
+                risk_score=float(attrs.get("risk_score") or (85.0 if is_suspicious else 25.0)),
                 in_degree=in_deg,
                 out_degree=out_deg,
                 total_in=round(in_amt, 2),

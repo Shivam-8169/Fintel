@@ -13,6 +13,7 @@ from app.graph.builder import GraphBuilder
 from app.detection.rules import RuleEvaluator
 from app.detection.scoring import RiskScorer
 from app.schemas.detection import IndicatorResult
+from app.utils.datetime_utils import utcnow
 
 
 @pytest.fixture
@@ -23,9 +24,9 @@ def detection_db():
     session = TestingSessionLocal()
 
     # Create account with rapid movement and high value
-    acc_target = Account(account_id="ACC-TARGET", account_type="CURRENT", created_at=datetime.utcnow())
-    acc_src = Account(account_id="ACC-SRC", account_type="SAVINGS", created_at=datetime.utcnow())
-    acc_dst = Account(account_id="ACC-DST", account_type="SAVINGS", created_at=datetime.utcnow())
+    acc_target = Account(account_id="ACC-TARGET", account_type="CURRENT", created_at=utcnow())
+    acc_src = Account(account_id="ACC-SRC", account_type="SAVINGS", created_at=utcnow())
+    acc_dst = Account(account_id="ACC-DST", account_type="SAVINGS", created_at=utcnow())
     session.add_all([acc_target, acc_src, acc_dst])
 
     t0 = datetime(2026, 8, 1, 10, 0, 0)

@@ -4,15 +4,15 @@ import {
   Search,
   Filter,
   ArrowUpRight,
-  ShieldAlert,
-  AlertTriangle,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  FileText
+  PlusCircle,
+  RefreshCw,
+  FolderKanban,
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CaseListItem } from '../types';
+import { getNeutralAccountId, cleanCustomerName, getCaseStatusLabel } from '../utils/complianceNaming';
+import { ComplianceTerm } from '../components/ComplianceTerm';
 
 export const CasesList: React.FC = () => {
   const [cases, setCases] = useState<CaseListItem[]>([]);
@@ -43,176 +43,332 @@ export const CasesList: React.FC = () => {
   const filteredCases = cases.filter((c) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
+    const neutralId = getNeutralAccountId(c.account_id).toLowerCase();
     return (
       c.case_id.toLowerCase().includes(term) ||
       c.account_id.toLowerCase().includes(term) ||
+      neutralId.includes(term) ||
       (c.customer_name && c.customer_name.toLowerCase().includes(term))
     );
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'REJECTED':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'REPORT_DRAFTED':
-      case 'PENDING_REVIEW':
-        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      case 'UNDER_INVESTIGATION':
-        return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
-      default:
-        return 'bg-slate-800 text-slate-300 border-slate-700';
-    }
-  };
-
   const getRiskBadge = (level: string) => {
     switch (level) {
       case 'CRITICAL':
-        return 'bg-red-950/80 text-red-400 border-red-700 font-bold';
+        return 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 font-bold';
       case 'HIGH':
-        return 'bg-amber-950/80 text-amber-400 border-amber-700 font-bold';
+        return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 font-bold';
       case 'MEDIUM':
-        return 'bg-yellow-950/60 text-yellow-400 border-yellow-700';
+        return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30 font-medium';
       default:
-        return 'bg-slate-900 text-slate-400 border-slate-700';
+        return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 font-medium';
     }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-[1440px] mx-auto pb-12">
+      {/* PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-[var(--border-default)]">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="pulse-badge">
+              <span className="pulse-beacon" />
+              <span>INVESTIGATION HUB</span>
+            </div>
+            <div className="flex items-center space-x-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+              <FolderKanban className="w-3.5 h-3.5" />
+              <span>Investigation Cases</span>
+            </div>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
             Flagged Suspicious Cases
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Accounts exceeding composite risk thresholds requiring autonomous agent investigation and human sign-off.
+          <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1.5 max-w-2xl leading-relaxed">
+            Accounts flagged during activity scanning that require investigator review, connections map checks, and report sign-offs.
           </p>
         </div>
-        <div className="text-xs text-slate-400 font-mono">
-          Showing {filteredCases.length} of {cases.length} cases
+
+        <div className="flex items-center space-x-2.5 shrink-0 self-start sm:self-auto">
+          <button
+            onClick={() => fetchCases()}
+            disabled={loading}
+            className="btn-secondary h-9 px-4 text-xs font-semibold rounded-full shadow-2xs inline-flex items-center gap-2"
+            title="Refresh cases list"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-[var(--text-muted)] ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Cases</span>
+          </button>
+          <Link to="/new-investigation" className="btn-primary h-9 px-5 text-xs font-semibold rounded-full shadow-2xs inline-flex items-center gap-2">
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Start New Investigation</span>
+          </Link>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+      {/* Filter & Search Controls */}
+      <div className="p-3 sm:p-4 rounded-xl pulse-card shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
+        <div className="relative flex-1 min-w-0">
+          <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Case ID, Account ID, or Customer name..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+            placeholder="Search by Case ID, account number, or customer name..."
+            className="w-full h-9 pl-9 pr-9 rounded-lg bg-[var(--bg-input)] border border-[var(--border-default)] text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent transition-all"
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-0.5 rounded transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+        <div className="flex items-center flex-wrap gap-2.5">
+          <div className="flex items-center space-x-1.5 w-full sm:w-auto">
+            <Filter className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+              className="w-full sm:w-auto h-9 px-3 rounded-lg bg-[var(--bg-input)] border border-[var(--border-default)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] text-xs font-medium cursor-pointer"
             >
               <option value="">All Risk Levels</option>
-              <option value="CRITICAL">Critical</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
+              <option value="CRITICAL">Critical (80–100) — Immediate Filing Priority</option>
+              <option value="HIGH">High (60–79) — Prioritized Review</option>
+              <option value="MEDIUM">Medium (40–59) — Standard Monitoring</option>
+              <option value="LOW">Low (0–39) — Low Risk</option>
             </select>
           </div>
 
-          <div>
+          <div className="w-full sm:w-auto">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+              className="w-full sm:w-auto h-9 px-3 rounded-lg bg-[var(--bg-input)] border border-[var(--border-default)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] text-xs font-medium cursor-pointer"
             >
               <option value="">All Workflow Statuses</option>
-              <option value="NEW">New</option>
-              <option value="UNDER_INVESTIGATION">Under Investigation</option>
+              <option value="NEW">Needs Initial Triage</option>
+              <option value="UNDER_INVESTIGATION">Investigation in Progress</option>
               <option value="REPORT_DRAFTED">Report Drafted</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
+              <option value="PENDING_REVIEW">Awaiting Your Review</option>
+              <option value="APPROVED">Approved for Regulatory Filing</option>
+              <option value="REJECTED">Closed — False Positive</option>
             </select>
+          </div>
+
+          <div className="h-9 flex items-center text-[var(--text-muted)] font-mono text-[11px] px-3 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)] shrink-0 ml-auto sm:ml-0">
+            <span className="font-semibold text-[var(--text-primary)] mr-1">{filteredCases.length}</span> of {cases.length}
           </div>
         </div>
       </div>
 
-      {/* Cases Table */}
-      <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+      {/* CASES PRESENTATION: Mobile Cards + Desktop Table */}
+      <div className="rounded-xl pulse-card overflow-hidden shadow-xs">
+        {/* Mobile Case Cards (< 640px) */}
+        <div className="block sm:hidden divide-y divide-[var(--border-subtle)]">
+          {loading ? (
+            <div className="py-10 text-center text-[var(--text-muted)]">
+              <div className="w-6 h-6 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <span className="text-xs">Loading cases...</span>
+            </div>
+          ) : filteredCases.length === 0 ? (
+            <div className="p-6 text-center text-[var(--text-muted)]">
+              <p className="text-xs font-medium text-[var(--text-primary)]">No cases match criteria.</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-1">Try resetting filters or start a new investigation.</p>
+            </div>
+          ) : (
+            filteredCases.map((c) => {
+              const statusInfo = getCaseStatusLabel(c.status);
+              return (
+                <div
+                  key={`card-${c.case_id}`}
+                  className="p-4 hover:bg-[var(--bg-card-subtle)] transition-colors space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <Link
+                      to={`/cases/${c.case_id}`}
+                      className="font-mono font-bold text-xs text-[var(--color-accent-text)] hover:underline truncate"
+                    >
+                      {c.case_id}
+                    </Link>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] border whitespace-nowrap ${getRiskBadge(c.risk_level)}`}>
+                        {c.risk_level} ({Math.round(c.risk_score)})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-[var(--text-primary)] leading-snug">
+                      {cleanCustomerName(c.customer_name)}
+                    </p>
+                    <p className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5">
+                      Account: {getNeutralAccountId(c.account_id)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-subtle)] text-[11px]">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold text-[10px] tracking-wide border whitespace-nowrap ${statusInfo.style}`}>
+                        <span className={`w-1 h-1 rounded-full shrink-0 ${statusInfo.dot}`} />
+                        <span>{statusInfo.label}</span>
+                      </span>
+                      {c.assigned_to && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-[var(--text-muted)] whitespace-nowrap">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                          <span>{c.assigned_to}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <Link
+                      to={`/cases/${c.case_id}`}
+                      className="btn-secondary text-[11px] py-1 px-2.5 inline-flex items-center gap-1 shrink-0"
+                    >
+                      <span>Open</span>
+                      <ArrowUpRight className="w-3 h-3 text-[var(--text-muted)]" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop & Tablet Table (>= 640px) */}
+        <div className="hidden sm:block overflow-x-auto rounded-xl border border-[var(--border-default)]">
+          <table className="w-full text-left text-xs border-collapse min-w-[1140px] table-fixed">
+            <colgroup>
+              <col className="w-[110px]" /> {/* Case ID */}
+              <col className="w-[100px]" /> {/* Account */}
+              <col className="w-[190px]" /> {/* Customer / Business */}
+              <col className="w-[85px]" />  {/* Risk Score */}
+              <col className="w-[95px]" />  {/* Risk Level */}
+              <col className="w-[215px]" /> {/* Status */}
+              <col className="w-[135px]" /> {/* Assigned To */}
+              <col className="w-[100px]" /> {/* Supporting Txns */}
+              <col className="w-[110px]" /> {/* Action */}
+            </colgroup>
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400 font-mono text-[11px] uppercase tracking-wider">
-                <th className="py-3.5 px-4">Case ID</th>
-                <th className="py-3.5 px-4">Subject Account</th>
-                <th className="py-3.5 px-4">Customer Entity</th>
-                <th className="py-3.5 px-4">Risk Score</th>
-                <th className="py-3.5 px-4">Risk Level</th>
-                <th className="py-3.5 px-4">Workflow Status</th>
-                <th className="py-3.5 px-4">Evidence</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+              <tr className="border-b border-[var(--border-default)] bg-[var(--bg-card-subtle)] text-[var(--text-muted)] font-semibold text-[11px] uppercase tracking-wider select-none">
+                <th className="py-3 px-3 align-middle whitespace-nowrap">Case ID</th>
+                <th className="py-3 px-3 align-middle whitespace-nowrap">Account</th>
+                <th className="py-3 px-3 align-middle whitespace-nowrap">Customer / Business</th>
+                <th className="py-3 px-3 align-middle text-right whitespace-nowrap">Risk Score</th>
+                <th className="py-3 px-3 align-middle whitespace-nowrap">Risk Level</th>
+                <th className="py-3 px-3 align-middle whitespace-nowrap">Status</th>
+                <th className="py-3 px-3 align-middle whitespace-nowrap">Assigned To</th>
+                <th className="py-3 px-3 align-middle whitespace-nowrap">Supporting Txns</th>
+                <th className="py-3 px-3 align-middle text-right whitespace-nowrap">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-850">
+            <tbody className="divide-y divide-[var(--border-subtle)]">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    Loading cases ledger...
+                  <td colSpan={9} className="py-12 text-center text-[var(--text-muted)] align-middle">
+                    <div className="w-7 h-7 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <span className="text-xs">Loading cases list...</span>
                   </td>
                 </tr>
               ) : filteredCases.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    No cases matching criteria.
+                  <td colSpan={9} className="py-12 text-center text-[var(--text-muted)] align-middle">
+                    <div className="p-4 max-w-sm mx-auto">
+                      <p className="text-xs font-medium text-[var(--text-primary)]">No cases match your filter criteria.</p>
+                      <p className="text-[11px] text-[var(--text-muted)] mt-1">Try clearing your search query or adjusting risk/status filters.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
-                filteredCases.map((c) => (
-                  <tr key={c.case_id} className="hover:bg-slate-900/50 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
-                      <Link to={`/cases/${c.case_id}`} className="hover:underline">
-                        {c.case_id}
-                      </Link>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-200">
-                      {c.account_id}
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-300">
-                      {c.customer_name}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-red-400">
-                      {c.risk_score} / 100
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] border ${getRiskBadge(c.risk_level)}`}>
-                        {c.risk_level}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded-full font-semibold text-[10px] border ${getStatusBadge(c.status)}`}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-400">
-                      {c.evidence_count} items
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <Link
-                        to={`/cases/${c.case_id}`}
-                        className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition-colors"
-                      >
-                        <span>Investigate</span>
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                filteredCases.map((c) => {
+                  const statusInfo = getCaseStatusLabel(c.status);
+                  return (
+                    <tr key={c.case_id} className="hover:bg-[var(--bg-card-hover)] transition-colors group">
+                      {/* 1. Case ID */}
+                      <td className="py-3 px-3 align-middle">
+                        <Link
+                          to={`/cases/${c.case_id}`}
+                          className="font-mono font-bold text-xs text-[var(--color-accent-text)] hover:underline whitespace-nowrap block"
+                        >
+                          {c.case_id}
+                        </Link>
+                      </td>
+
+                      {/* 2. Account */}
+                      <td className="py-3 px-3 align-middle">
+                        <span className="font-mono font-medium text-xs text-[var(--text-primary)] whitespace-nowrap block">
+                          {getNeutralAccountId(c.account_id)}
+                        </span>
+                      </td>
+
+                      {/* 3. Customer / Business */}
+                      <td className="py-3 px-3 align-middle">
+                        <div className="min-w-0 max-w-[175px]">
+                          <p className="font-medium text-xs text-[var(--text-primary)] truncate" title={cleanCustomerName(c.customer_name)}>
+                            {cleanCustomerName(c.customer_name)}
+                          </p>
+                        </div>
+                      </td>
+
+                      {/* 4. Risk Score */}
+                      <td className="py-3 px-3 align-middle text-right">
+                        <div className="font-mono font-bold text-xs whitespace-nowrap">
+                          <span className={c.risk_score >= 80 ? 'text-rose-600 dark:text-rose-400' : c.risk_score >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400'}>
+                            {c.risk_score}
+                          </span>
+                          <span className="text-[10px] text-[var(--text-muted)] font-normal"> / 100</span>
+                        </div>
+                      </td>
+
+                      {/* 5. Risk Level */}
+                      <td className="py-3 px-3 align-middle">
+                        <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide whitespace-nowrap border ${getRiskBadge(c.risk_level)}`}>
+                          {c.risk_level}
+                        </span>
+                      </td>
+
+                      {/* 6. Status Badge */}
+                      <td className="py-3 px-3 align-middle">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold text-[11px] tracking-wide whitespace-nowrap border leading-none ${statusInfo.style}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusInfo.dot}`} />
+                          <span>{statusInfo.label}</span>
+                        </span>
+                      </td>
+
+                      {/* 7. Assigned To Pill */}
+                      <td className="py-3 px-3 align-middle">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--bg-card-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] whitespace-nowrap leading-none">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                          <span className="truncate max-w-[100px]" title={c.assigned_to || 'Unassigned'}>
+                            {c.assigned_to || 'Unassigned'}
+                          </span>
+                        </span>
+                      </td>
+
+                      {/* 8. Supporting Transactions */}
+                      <td className="py-3 px-3 align-middle">
+                        <span className="font-mono text-xs text-[var(--text-muted)] whitespace-nowrap block">
+                          {c.evidence_count} {c.evidence_count === 1 ? 'record' : 'records'}
+                        </span>
+                      </td>
+
+                      {/* 9. Action Button */}
+                      <td className="py-3 px-3 align-middle text-right">
+                        <div className="flex items-center justify-end">
+                          <Link
+                            to={`/cases/${c.case_id}`}
+                            className="btn-secondary h-8 px-2.5 text-xs font-semibold whitespace-nowrap inline-flex items-center justify-center gap-1 rounded-lg shadow-2xs hover:border-[var(--color-accent-border)] hover:text-[var(--color-accent-text)] transition-all shrink-0"
+                          >
+                            <span>Open Case</span>
+                            <ArrowUpRight className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-[var(--color-accent-text)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -221,3 +377,5 @@ export const CasesList: React.FC = () => {
     </div>
   );
 };
+
+export default CasesList;

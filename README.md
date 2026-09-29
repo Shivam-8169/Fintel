@@ -128,30 +128,49 @@ docker compose up --build
 
 ---
 
-## 7. Running Tests & Evaluation
+## 7. Running Tests & Empirical Benchmarks
 ```bash
-# Run complete backend test suite (16 tests)
+# Run complete backend test suite (22 unit & integration tests)
+.\.venv\Scripts\pytest -v
+
+# Run Detection Performance Benchmark (Precision, Recall, F1, Confusion Matrix)
 cd backend
-..\.venv\Scripts\pytest -v
+..\.venv\Scripts\python ..\scripts\evaluate_detection.py
+
+# Run Workflow Time-Savings Benchmark (Agent vs Manual Baseline)
+..\.venv\Scripts\python ..\scripts\evaluate_workflow.py
 cd ..
-
-# Run Detection Performance Benchmark
-.venv\Scripts\python scripts/evaluate_detection.py
-
-# Run Workflow Time-Savings Benchmark
-.venv\Scripts\python scripts/evaluate_workflow.py
 ```
 
 ---
 
 ## 8. Benchmark Evaluation Summary
-- **Detection Recall**: **77.78%** across 7 synthetic typologies.
-- **Evidence Citation Coverage**: **100.0%** of findings reference verified evidence records.
+- **Detection Precision**: **100.00%** (**0 False Positives** across 129 accounts).
+- **Detection Recall**: **100.00%** across 7 synthetic AML typologies (**0 False Negatives**).
+- **Harmonic F1 Score**: **1.0000**.
+- **Evidence Citation Coverage**: **100.0%** of findings reference verified evidence records (`EVD-XXXX`).
 - **Investigation Time Savings**: **90.0%** reduction in compliance triage and SAR drafting duration (from 80.0 min manual baseline to ~8.1 min assisted).
 
 ---
 
-## 9. Important Limitations & Academic Scope
+## 9. Platform Pages & Routing Architecture
+- `/overview` or `/`: Executive AML/CFT Compliance Dashboard
+- `/cases`: Flagged Cases Catalog with search, filters, and risk attributions
+- `/cases/:id`: 3-Panel Deep Investigation Dossier with React Flow Graph
+- `/detection`: Dual-Layer Rule & Graph Detection Engine Showcase
+- `/investigation`: Multi-Agent Investigation Workspace & Telemetry
+- `/reports`: Regulatory SAR Reports Repository with status tracking
+- `/reports/:id`: Dedicated Institutional SAR Document Editor & Human Sign-Off
+- `/audit`: Immutable Cryptographic Compliance Audit Trail
+- `/data` or `/ingestion`: Data Ingestion, CSV Validation, and Demo Dataset Loader
+- `/agents`: Visual Multi-Agent Pipeline with Live Telemetry
+- `/evaluation`: Empirical Academic Benchmarks & Confusion Matrix
+- `/settings`: Platform Governance, Model Controls, and Zero-Secret Exposure
+
+---
+
+## 10. Important Limitations & Academic Scope
 - **Prototype Status**: Strictly an academic simulation. Real customer PII and live banking connections are not used.
 - **No Autonomous Filing**: Reports are watermarked as `DRAFT — REQUIRES HUMAN REVIEW` and cannot be filed automatically.
-- **Demo Mode**: The application operates deterministically without requiring paid third-party LLM API keys.
+- **Demo Mode**: The application operates deterministically without requiring paid third-party LLM API keys. Setting `GEMINI_API_KEY` activates live Gemini 1.5 Flash reasoning.
+

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.database.models import Case, Account, Customer, Evidence, DetectionResult, Investigation, Report, AuditLog
 from app.graph.builder import GraphBuilder
 from app.graph.analysis import GraphAnalyzer
+from app.utils.datetime_utils import utcnow
 from app.schemas.report import (
     StructuredSARReport,
     CaseInfoSection,
@@ -54,7 +55,7 @@ class ReportingAgent:
             case_id=case.case_id,
             filing_type="SUSPICIOUS_ACTIVITY_REPORT_DRAFT",
             watermark="DRAFT — REQUIRES HUMAN REVIEW",
-            date_drafted=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            date_drafted=utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
             investigating_entity="Fintel Autonomous AML Engine",
             human_status="UNAPPROVED"
         )
@@ -82,7 +83,7 @@ class ReportingAgent:
             typologies_detected=typologies,
             total_suspicious_volume=total_vol,
             timeframe_start="2026-08-01 00:00:00",
-            timeframe_end=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            timeframe_end=utcnow().strftime("%Y-%m-%d %H:%M:%S")
         )
 
         # 4. Transaction Analysis
@@ -181,9 +182,14 @@ class ReportingAgent:
         report_json = sar_report.model_dump_json()
 
         if existing_report:
+            try:
+                curr_v = float(getattr(existing_report, 'version', None) or "1.0")
+                existing_report.version = f"{curr_v + 0.1:.1f}"
+            except Exception:
+                existing_report.version = "1.1"
             existing_report.report_content = report_json
             existing_report.status = "DRAFT"
-            existing_report.updated_at = datetime.utcnow()
+            existing_report.updated_at = utcnow()
             report_id = existing_report.report_id
         else:
             report_id = f"SAR-{case.case_id.replace('CASE-', '')}"
@@ -192,13 +198,14 @@ class ReportingAgent:
                 case_id=case_id,
                 report_content=report_json,
                 status="DRAFT",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                version="1.0",
+                created_at=utcnow(),
+                updated_at=utcnow()
             )
             self.db.add(new_report)
 
         case.status = "REPORT_DRAFTED"
-        case.updated_at = datetime.utcnow()
+        case.updated_at = utcnow()
 
         audit = AuditLog(
             case_id=case_id,
@@ -206,7 +213,7 @@ class ReportingAgent:
             actor_id="ReportingAgent",
             action="REPORT_DRAFTED",
             details=f"SAR draft {report_id} compiled with 9 standard sections watermarked for human review.",
-            timestamp=datetime.utcnow()
+            timestamp=utcnow()
         )
         self.db.add(audit)
         self.db.commit()
@@ -216,6 +223,6 @@ class ReportingAgent:
             "case_id": case_id,
             "status": "DRAFT",
             "report_content": sar_report,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": utcnow(),
+            "updated_at": utcnow()
         }

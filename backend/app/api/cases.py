@@ -16,11 +16,13 @@ from app.schemas.case import (
     CaseDetailResponse,
     InvestigatorNoteCreate,
     InvestigatorNoteResponse,
-    CaseStatusUpdate
+    CaseStatusUpdate,
+    CaseAssignRequest
 )
 from app.schemas.detection import IndicatorResult, EvidenceItemSchema
 from app.schemas.data import AccountSchema, CustomerSchema
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_lead_investigator, normalize_role
+from app.utils.datetime_utils import utcnow
 
 router = APIRouter(prefix="/cases", tags=["Case Management"])
 
@@ -73,6 +75,7 @@ def list_cases(
             risk_score=c.risk_score,
             risk_level=c.risk_level,
             status=c.status,
+            assigned_to=getattr(c, "assigned_to", None) or "Shivam Sharma",
             created_at=c.created_at,
             updated_at=c.updated_at,
             indicator_count=ind_count,
@@ -136,6 +139,7 @@ def get_case_detail(case_id: str, db: Session = Depends(get_db)):
         risk_score=case.risk_score,
         risk_level=case.risk_level,
         status=case.status,
+        assigned_to=getattr(case, "assigned_to", None) or "Shivam Sharma",
         created_at=case.created_at,
         updated_at=case.updated_at,
         account=AccountSchema.model_validate(account) if account else None,
@@ -164,17 +168,18 @@ def add_case_note(
     new_note = InvestigatorNote(
         case_id=case_id,
         note_text=note_in.note_text,
-        created_at=datetime.utcnow()
+        created_at=utcnow()
     )
     db.add(new_note)
 
+    user_role = normalize_role(current_user.role)
     audit = AuditLog(
         case_id=case_id,
-        actor_type=current_user.role,
-        actor_id=current_user.email,
+        actor_type=user_role,
+        actor_id=current_user.name,
         action="NOTE_ADDED",
-        details=f"Investigator {current_user.name} added qualitative note.",
-        timestamp=datetime.utcnow()
+        details=f"{user_role} {current_user.name} logged an investigative case note.",
+        timestamp=utcnow()
     )
     db.add(audit)
     db.commit()
@@ -183,7 +188,9 @@ def add_case_note(
         note_id=new_note.note_id,
         case_id=new_note.case_id,
         note_text=new_note.note_text,
-        created_at=new_note.created_at
+        created_at=new_note.created_at,
+        author_name=current_user.name,
+        author_role=user_role
     )
 
 
@@ -201,17 +208,57 @@ def update_case_status(
 
     old_status = case.status
     case.status = update.status.upper()
-    case.updated_at = datetime.utcnow()
+    case.updated_at = utcnow()
 
+    user_role = normalize_role(current_user.role)
     audit = AuditLog(
         case_id=case_id,
-        actor_type=current_user.role,
-        actor_id=current_user.email,
+        actor_type=user_role,
+        actor_id=current_user.name,
         action="CASE_STATUS_CHANGED",
-        details=f"Status changed from {old_status} to {case.status}. Reason: {update.reason or 'Investigator action'}",
-        timestamp=datetime.utcnow()
+        details=f"{user_role} {current_user.name} changed status from {old_status} to {case.status}. Reason: {update.reason or 'Investigator action'}",
+        timestamp=utcnow()
     )
     db.add(audit)
     db.commit()
 
     return {"message": f"Case status updated to {case.status}", "case_id": case_id, "status": case.status}
+
+
+@router.put("/{case_id}/assign")
+def assign_case(
+    case_id: str,
+    assign_req: CaseAssignRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_lead_investigator)
+):
+    """
+    LEAD INVESTIGATOR / ADMIN ONLY: Reassigns a case between investigators.
+    Enforced at API layer: Regular Investigators receive 403 Forbidden.
+    """
+    case = db.query(Case).filter(Case.case_id == case_id).first()
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case '{case_id}' not found.")
+
+    old_assignee = getattr(case, "assigned_to", None) or "Unassigned"
+    case.assigned_to = assign_req.assigned_to.strip()
+    case.updated_at = utcnow()
+
+    user_role = normalize_role(current_user.role)
+    audit = AuditLog(
+        case_id=case_id,
+        actor_type=user_role,
+        actor_id=current_user.name,
+        action="CASE_REASSIGNED",
+        details=f"{user_role} {current_user.name} reassigned case from '{old_assignee}' to '{case.assigned_to}'.",
+        timestamp=utcnow()
+    )
+    db.add(audit)
+    db.commit()
+
+    return {
+        "message": f"Case successfully reassigned to {case.assigned_to}",
+        "case_id": case_id,
+        "assigned_to": case.assigned_to,
+        "reassigned_by": current_user.name
+    }

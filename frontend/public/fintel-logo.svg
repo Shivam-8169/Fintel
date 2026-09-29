@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 100" fill="none">
+  <defs>
+    <!-- Outer Shield Gradient -->
+    <linearGradient id="fullShieldGrad" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="45%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Inner Field Gradient -->
+    <linearGradient id="fullFieldGrad" x1="50" y1="10" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- Bars Gradient -->
+    <linearGradient id="fullBarGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+
+    <!-- Dynamic Wave Gradient -->
+    <linearGradient id="fullWaveGrad" x1="20" y1="80" x2="80" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+
+    <!-- Text Gradient for FINTEL -->
+    <linearGradient id="textGrad" x1="110" y1="30" x2="360" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="38%" stop-color="#F0F9FF" />
+      <stop offset="65%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left Shield Emblem Group (scaled and positioned at x=6, y=6) -->
+  <g transform="translate(6, 6) scale(0.88)">
+    <!-- Outer Shield Shell -->
+    <path
+      d="M 50 6 L 88 20 C 88 56, 76 80, 50 94 C 24 80, 12 56, 12 20 Z"
+      fill="url(#fullShieldGrad)"
+      stroke="#60A5FA"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+    />
+
+    <!-- Inner Dark Field -->
+    <path
+      d="M 50 11 L 83 23 C 83 54, 72 75, 50 88 C 28 75, 17 54, 17 23 Z"
+      fill="url(#fullFieldGrad)"
+      stroke="#1E3A8A"
+      stroke-width="1"
+    />
+
+    <!-- Subtle Bevel Shade (Right Half) -->
+    <path
+      d="M 50 11 L 83 23 C 83 54, 72 75, 50 88 Z"
+      fill="#000000"
+      fill-opacity="0.22"
+    />
+
+    <!-- Ascending Financial Ledger Bars -->
+    <g fill="url(#fullBarGrad)">
+      <rect x="23" y="58" width="4.5" height="15" rx="1.2" />
+      <rect x="30" y="47" width="4.5" height="26" rx="1.2" />
+      <rect x="37" y="36" width="4.5" height="37" rx="1.2" />
+      <rect x="44" y="24" width="4.5" height="49" rx="1.2" />
+    </g>
+
+    <!-- Right: Network Graph Topology -->
+    <g stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round" opacity="0.85">
+      <line x1="59" y1="33" x2="71" y2="44" />
+      <line x1="59" y1="33" x2="57" y2="58" />
+      <line x1="71" y1="44" x2="77" y2="65" />
+      <line x1="57" y1="58" x2="77" y2="65" />
+      <line x1="57" y1="58" x2="65" y2="76" />
+    </g>
+
+    <g fill="#38BDF8">
+      <circle cx="59" cy="33" r="3.2" fill="#E0F2FE" stroke="#0284C7" stroke-width="1" />
+      <circle cx="71" cy="44" r="3" fill="#BAE6FD" stroke="#0284C7" stroke-width="1" />
+      <circle cx="57" cy="58" r="3.5" fill="#38BDF8" stroke="#0369A1" stroke-width="1" />
+      <circle cx="77" cy="65" r="3.5" fill="#38BDF8" stroke="#0369A1" stroke-width="1" />
+      <circle cx="65" cy="76" r="2.8" fill="#0284C7" stroke="#38BDF8" stroke-width="1" />
+    </g>
+
+    <!-- Upward Intelligence Trajectory Wave -->
+    <path
+      d="M 17 76 C 26 73, 33 63, 44 56 C 54 49, 64 42, 75 34 C 68 40, 56 50, 47 58 C 36 67, 28 77, 20 81 Z"
+      fill="url(#fullWaveGrad)"
+      opacity="0.95"
+    />
+    <path
+      d="M 19 75 C 31 71, 44 58, 75 34"
+      stroke="#FFFFFF"
+      stroke-width="1.2"
+      stroke-linecap="round"
+    />
+  </g>
+
+  <!-- Typography Right Section -->
+  <!-- Main Brand Title: FINTEL -->
+  <g transform="translate(108, 14)">
+    <text
+      x="0"
+      y="38"
+      font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif"
+      font-size="42"
+      font-weight="900"
+      letter-spacing="2.5"
+      fill="url(#textGrad)"
+    >
+      FINTEL
+    </text>
+
+    <!-- Subtitle: FINANCIAL CRIME INVESTIGATION PLATFORM -->
+    <text
+      x="1"
+      y="55"
+      font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif"
+      font-size="10.5"
+      font-weight="700"
+      letter-spacing="1.8"
+      fill="#94A3B8"
+    >
+      FINANCIAL CRIME INVESTIGATION PLATFORM
+    </text>
+
+    <!-- Third line: AML / CFT • AUTONOMOUS INTELLIGENCE -->
+    <g transform="translate(1, 69)">
+      <text
+        x="0"
+        y="0"
+        font-family="-apple-system, BlinkMacSystemFont, 'JetBrains Mono', 'Roboto Mono', monospace"
+        font-size="8.5"
+        font-weight="700"
+        letter-spacing="2"
+        fill="#38BDF8"
+      >
+        AML / CFT • AUTONOMOUS INTELLIGENCE
+      </text>
+
+      <!-- Minimal Divider Hairline -->
+      <line x1="228" y1="-3" x2="318" y2="-3" stroke="#334155" stroke-width="0.75" />
+    </g>
+  </g>
+</svg>

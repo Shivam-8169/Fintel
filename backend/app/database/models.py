@@ -13,17 +13,36 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from app.database.database import Base
+from app.utils.datetime_utils import utcnow
 
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(String(50), unique=True, index=True, nullable=False, default=lambda: f"USR-{uuid.uuid4().hex[:8].upper()}")
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    role = Column(String(50), default="INVESTIGATOR", nullable=False)  # INVESTIGATOR, ADMIN
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    password_hash = Column(String(255), nullable=True)  # Nullable when invited before setting password
+    role = Column(String(50), default="Investigator", nullable=False)  # Admin | Lead Investigator | Investigator
+    status = Column(String(50), default="Active", nullable=False)  # Invited | Active | Deactivated
+    invited_by = Column(String(100), nullable=True)
+    invited_at = Column(DateTime, nullable=True)
+    last_login_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+
+
+class Invite(Base):
+    __tablename__ = "invites"
+
+    invite_id = Column(String(50), primary_key=True, index=True, default=lambda: f"INV-{uuid.uuid4().hex[:8].upper()}")
+    email = Column(String(255), nullable=False, index=True)
+    role = Column(String(50), default="Investigator", nullable=False)  # Admin | Lead Investigator | Investigator
+    token = Column(String(100), unique=True, index=True, nullable=False)
+    status = Column(String(50), default="Pending", nullable=False)  # Pending | Accepted | Expired
+    created_by = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
 
 
 class Customer(Base):
@@ -44,7 +63,7 @@ class Account(Base):
     account_id = Column(String(50), primary_key=True, index=True)
     customer_id = Column(String(50), ForeignKey("customers.customer_id"), nullable=True)
     account_type = Column(String(50), default="SAVINGS", nullable=False)  # SAVINGS, CURRENT, BUSINESS
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
 
     customer = relationship("Customer", back_populates="accounts")
     cases = relationship("Case", back_populates="account")
@@ -57,7 +76,7 @@ class Transaction(Base):
     sender_account = Column(String(50), ForeignKey("accounts.account_id"), index=True, nullable=False)
     receiver_account = Column(String(50), ForeignKey("accounts.account_id"), index=True, nullable=False)
     amount = Column(Float, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True, nullable=False)
+    timestamp = Column(DateTime, default=utcnow, index=True, nullable=False)
     transaction_type = Column(String(50), default="WIRE_TRANSFER", nullable=False)
 
     __table_args__ = (
@@ -73,8 +92,9 @@ class Case(Base):
     risk_score = Column(Float, default=0.0, nullable=False)
     risk_level = Column(String(20), default="LOW", nullable=False)  # LOW, MEDIUM, HIGH, CRITICAL
     status = Column(String(50), default="NEW", nullable=False)  # NEW, UNDER_INVESTIGATION, REPORT_DRAFTED, PENDING_REVIEW, APPROVED, REJECTED, CLOSED
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    assigned_to = Column(String(100), nullable=True)  # Name or email of assigned investigator
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
     account = relationship("Account", back_populates="cases")
     detection_results = relationship("DetectionResult", back_populates="case", cascade="all, delete-orphan")
@@ -118,7 +138,7 @@ class Investigation(Base):
     suspicious_patterns = Column(Text, nullable=False)  # JSON serialized list of pattern objects
     reasoning = Column(Text, nullable=False)  # JSON serialized list of reasoning steps
     uncertainty = Column(Text, nullable=True)  # JSON serialized list of uncertainties
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
 
     case = relationship("Case", back_populates="investigations")
 
@@ -130,8 +150,9 @@ class Report(Base):
     case_id = Column(String(50), ForeignKey("cases.case_id"), index=True, nullable=False)
     report_content = Column(Text, nullable=False)  # JSON serialized structured SAR report
     status = Column(String(50), default="DRAFT", nullable=False)  # DRAFT, PENDING_REVIEW, APPROVED, REJECTED
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    version = Column(String(20), default="1.0", nullable=True)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
     case = relationship("Case", back_populates="reports")
 
@@ -142,7 +163,7 @@ class InvestigatorNote(Base):
     note_id = Column(String(50), primary_key=True, index=True, default=lambda: f"NOTE-{uuid.uuid4().hex[:8].upper()}")
     case_id = Column(String(50), ForeignKey("cases.case_id"), index=True, nullable=False)
     note_text = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
 
     case = relationship("Case", back_populates="notes")
 
@@ -156,6 +177,6 @@ class AuditLog(Base):
     actor_id = Column(String(100), default="SYSTEM", nullable=False)
     action = Column(String(100), nullable=False)
     details = Column(Text, nullable=True)  # JSON serialized action details
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True, nullable=False)
+    timestamp = Column(DateTime, default=utcnow, index=True, nullable=False)
 
     case = relationship("Case", back_populates="audit_logs")

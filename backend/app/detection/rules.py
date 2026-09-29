@@ -14,6 +14,22 @@ from app.database.models import Transaction, Account, Customer
 from app.schemas.detection import IndicatorResult, EvidenceItemSchema
 
 
+def format_inr(amount: float) -> str:
+    """Format numeric amount into INR currency string with Indian numbering (e.g. ₹9,50,000)."""
+    s = f"{int(round(amount))}"
+    if len(s) <= 3:
+        return f"\u20b9{s}"
+    last_three = s[-3:]
+    rest = s[:-3]
+    parts = []
+    while len(rest) > 2:
+        parts.insert(0, rest[-2:])
+        rest = rest[:-2]
+    if rest:
+        parts.insert(0, rest)
+    return f"\u20b9{','.join(parts)},{last_three}"
+
+
 class RuleEvaluator:
     """Evaluates rules against an account given transactions and transaction graph."""
 
@@ -83,28 +99,47 @@ class RuleEvaluator:
         if not hv_txs:
             return None, []
 
+        # Differentiate between active initiator/repetitive transactor vs passive single recipient
+        sent_hv = [t for t in hv_txs if t.sender_account == account_id]
+        recv_hv = [t for t in hv_txs if t.receiver_account == account_id]
+        total_vol = sum(t.amount for t in hv_txs)
+        total_sent_vol = sum(t.amount for t in sent_hv)
+
+        # Passive single recipient with no other high-value transfers should not generate an AML alert alone
+        if len(sent_hv) == 0 and len(recv_hv) == 1 and total_vol < 250000.0:
+            return None, []
+
         ev_list = []
         ev_ids = []
-        total_vol = sum(t.amount for t in hv_txs)
-
         for t in hv_txs:
             ev_id = f"EVD-HV-{t.transaction_id}"
             ev_ids.append(ev_id)
+            direction = "Outbound transfer to" if t.sender_account == account_id else "Inbound transfer from"
+            counterpart = t.receiver_account if t.sender_account == account_id else t.sender_account
             ev_list.append(EvidenceItemSchema(
                 evidence_id=ev_id,
                 evidence_type="TRANSACTION",
                 source_id=t.transaction_id,
-                description=f"Transaction {t.transaction_id} of ${t.amount:,.2f} exceeds high-value threshold of ${settings.HIGH_VALUE_THRESHOLD:,.2f} on {t.timestamp.strftime('%Y-%m-%d %H:%M')}."
+                description=f"{direction} {counterpart}: Transaction {t.transaction_id} of {format_inr(t.amount)} exceeds high-value threshold of {format_inr(settings.HIGH_VALUE_THRESHOLD)} on {t.timestamp.strftime('%Y-%m-%d %H:%M')}."
             ))
 
-        score = min(35.0, 15.0 + (len(hv_txs) * 8.0))
+        # Calibrated scoring: strong score for multiple transfers or active originators (> 100k)
+        if len(sent_hv) >= 2 or total_sent_vol >= 100000.0:
+            count_factor = len(sent_hv) * 12.0
+            volume_factor = min(35.0, (total_sent_vol / settings.HIGH_VALUE_THRESHOLD) * 4.0)
+            score = min(80.0, 30.0 + count_factor + volume_factor)
+        else:
+            count_factor = len(hv_txs) * 8.0
+            volume_factor = min(25.0, (total_vol / settings.HIGH_VALUE_THRESHOLD) * 3.0)
+            score = min(55.0, 15.0 + count_factor + volume_factor)
+
         indicator = IndicatorResult(
             name="high_value_transfers",
-            score=score,
-            explanation=f"Identified {len(hv_txs)} transactions exceeding high-value threshold (${settings.HIGH_VALUE_THRESHOLD:,.2f}) with cumulative volume of ${total_vol:,.2f}.",
+            score=round(score, 1),
+            explanation=f"Identified {len(hv_txs)} transactions exceeding high-value threshold ({format_inr(settings.HIGH_VALUE_THRESHOLD)}) with cumulative volume of {format_inr(total_vol)} ({len(sent_hv)} outbound sent, {format_inr(total_sent_vol)}).",
             evidence_ids=ev_ids,
             relevant_transactions=[t.transaction_id for t in hv_txs],
-            graph_features={"high_value_tx_count": len(hv_txs), "total_high_value_volume": total_vol}
+            graph_features={"high_value_tx_count": len(hv_txs), "total_high_value_volume": total_vol, "sent_volume": total_sent_vol}
         )
         return indicator, ev_list
 
@@ -138,13 +173,13 @@ class RuleEvaluator:
                 evidence_id=e_id,
                 evidence_type="TRANSACTION",
                 source_id=f"{in_t.transaction_id},{out_t.transaction_id}",
-                description=f"Inflow ${in_t.amount:,.2f} ({in_t.transaction_id}) swiftly transferred out ${out_t.amount:,.2f} ({out_t.transaction_id}) within {diff_h:.1f} hours ({ratio*100:.1f}% volume retained)."
+                description=f"Inflow {format_inr(in_t.amount)} ({in_t.transaction_id}) swiftly transferred out {format_inr(out_t.amount)} ({out_t.transaction_id}) within {diff_h:.1f} hours ({ratio*100:.1f}% volume retained)."
             ))
 
-        score = min(30.0, 20.0 + len(rapid_pairs) * 5.0)
+        score = min(50.0, 25.0 + len(rapid_pairs) * 10.0)
         indicator = IndicatorResult(
             name="rapid_fund_movement",
-            score=score,
+            score=round(score, 1),
             explanation=f"Detected rapid fund pass-through pattern: incoming capital routed out within {settings.RAPID_MOVEMENT_WINDOW_HOURS} hours with over 70% capital matching.",
             evidence_ids=ev_ids,
             relevant_transactions=list(rel_txs),
@@ -169,14 +204,15 @@ class RuleEvaluator:
                 evidence_id=e_id,
                 evidence_type="TRANSACTION",
                 source_id=t.transaction_id,
-                description=f"Transaction {t.transaction_id} of ${t.amount:,.2f} is positioned right below the $10,000 regulatory filing threshold."
+                description=f"Transaction {t.transaction_id} of {format_inr(t.amount)} is positioned right below the {format_inr(10000)} regulatory filing threshold."
             ))
 
-        score = min(30.0, 15.0 + len(structuring_txs) * 4.0)
+        # Calibrated: 4+ near-10k structuring transactions strongly triggers AML threshold
+        score = min(65.0, 25.0 + len(structuring_txs) * 8.0)
         indicator = IndicatorResult(
             name="structuring_smurfing",
-            score=score,
-            explanation=f"Detected {len(structuring_txs)} transactions intentionally structured between ${settings.STRUCTURING_LOWER_BOUND:,.0f} and ${settings.STRUCTURING_THRESHOLD:,.0f} to avoid mandatory filing triggers.",
+            score=round(score, 1),
+            explanation=f"Detected {len(structuring_txs)} transactions intentionally structured between {format_inr(settings.STRUCTURING_LOWER_BOUND)} and {format_inr(settings.STRUCTURING_THRESHOLD)} to avoid mandatory filing triggers.",
             evidence_ids=ev_ids,
             relevant_transactions=[t.transaction_id for t in structuring_txs],
             graph_features={"structuring_tx_count": len(structuring_txs)}
@@ -184,52 +220,104 @@ class RuleEvaluator:
         return indicator, ev_list
 
     def _check_many_to_one(self, account_id: str, in_txs: List[Transaction]):
-        unique_senders = {t.sender_account for t in in_txs}
-        if len(unique_senders) < settings.FAN_OUT_IN_DEGREE_THRESHOLD:
+        if not in_txs:
+            return None, []
+
+        sorted_in = sorted(in_txs, key=lambda t: t.timestamp)
+        window = timedelta(hours=72)
+
+        best_cluster = None
+        best_senders = set()
+        best_volume = 0.0
+
+        for i in range(len(sorted_in)):
+            cluster = []
+            senders = set()
+            vol = 0.0
+            t_start = sorted_in[i].timestamp
+            for j in range(i, len(sorted_in)):
+                if sorted_in[j].timestamp - t_start <= window:
+                    cluster.append(sorted_in[j])
+                    senders.add(sorted_in[j].sender_account)
+                    vol += sorted_in[j].amount
+                else:
+                    break
+            if len(senders) >= settings.FAN_OUT_IN_DEGREE_THRESHOLD and vol >= 20000.0:
+                if len(senders) > len(best_senders) or vol > best_volume:
+                    best_cluster = cluster
+                    best_senders = senders
+                    best_volume = vol
+
+        if not best_cluster:
             return None, []
 
         ev_id = f"EVD-FANIN-{account_id}"
-        total_inflow = sum(t.amount for t in in_txs)
         ev_item = EvidenceItemSchema(
             evidence_id=ev_id,
             evidence_type="GRAPH_METRIC",
             source_id=account_id,
-            description=f"Account received funds from {len(unique_senders)} distinct counterparty sources accumulating ${total_inflow:,.2f} in total deposits."
+            description=f"Account received funds from {len(best_senders)} distinct counterparty sources accumulating {format_inr(best_volume)} within a 72-hour window."
         )
 
-        score = min(25.0, 12.0 + len(unique_senders) * 2.5)
+        score = min(65.0, 30.0 + len(best_senders) * 4.0 + min(20.0, (best_volume / 25000.0) * 10.0))
         indicator = IndicatorResult(
             name="many_to_one_aggregation",
-            score=score,
-            explanation=f"Fan-in mule aggregation topology observed: incoming payments from {len(unique_senders)} distinct entities converging into this account.",
+            score=round(score, 1),
+            explanation=f"Fan-in mule aggregation topology observed: incoming payments from {len(best_senders)} distinct entities converging within 72 hours (total {format_inr(best_volume)}).",
             evidence_ids=[ev_id],
-            relevant_transactions=[t.transaction_id for t in in_txs[:10]],
-            graph_features={"in_degree_counterparties": len(unique_senders), "total_inflow": total_inflow}
+            relevant_transactions=[t.transaction_id for t in best_cluster[:10]],
+            graph_features={"in_degree_counterparties": len(best_senders), "total_inflow": best_volume}
         )
         return indicator, [ev_item]
 
     def _check_one_to_many(self, account_id: str, out_txs: List[Transaction], in_txs: List[Transaction]):
-        unique_receivers = {t.receiver_account for t in out_txs}
-        if len(unique_receivers) < settings.FAN_OUT_IN_DEGREE_THRESHOLD:
+        if not out_txs:
+            return None, []
+
+        sorted_out = sorted(out_txs, key=lambda t: t.timestamp)
+        window = timedelta(hours=72)
+
+        best_cluster = None
+        best_receivers = set()
+        best_volume = 0.0
+
+        for i in range(len(sorted_out)):
+            cluster = []
+            receivers = set()
+            vol = 0.0
+            t_start = sorted_out[i].timestamp
+            for j in range(i, len(sorted_out)):
+                if sorted_out[j].timestamp - t_start <= window:
+                    cluster.append(sorted_out[j])
+                    receivers.add(sorted_out[j].receiver_account)
+                    vol += sorted_out[j].amount
+                else:
+                    break
+            if len(receivers) >= settings.FAN_OUT_IN_DEGREE_THRESHOLD and vol >= 20000.0:
+                if len(receivers) > len(best_receivers) or vol > best_volume:
+                    best_cluster = cluster
+                    best_receivers = receivers
+                    best_volume = vol
+
+        if not best_cluster:
             return None, []
 
         ev_id = f"EVD-FANOUT-{account_id}"
-        total_outflow = sum(t.amount for t in out_txs)
         ev_item = EvidenceItemSchema(
             evidence_id=ev_id,
             evidence_type="GRAPH_METRIC",
             source_id=account_id,
-            description=f"Account dispersed funds outward to {len(unique_receivers)} unique beneficiary accounts totaling ${total_outflow:,.2f}."
+            description=f"Account dispersed funds outward to {len(best_receivers)} unique beneficiary accounts totaling {format_inr(best_volume)} within a 72-hour window."
         )
 
-        score = min(25.0, 12.0 + len(unique_receivers) * 2.5)
+        score = min(65.0, 30.0 + len(best_receivers) * 4.0 + min(20.0, (best_volume / 25000.0) * 10.0))
         indicator = IndicatorResult(
             name="one_to_many_dispersion",
-            score=score,
-            explanation=f"Fan-out dispersion topology observed: outward payments rapidly divided and routed to {len(unique_receivers)} target entities.",
+            score=round(score, 1),
+            explanation=f"Fan-out dispersion topology observed: outward payments rapidly divided and routed to {len(best_receivers)} target entities within 72 hours (total {format_inr(best_volume)}).",
             evidence_ids=[ev_id],
-            relevant_transactions=[t.transaction_id for t in out_txs[:10]],
-            graph_features={"out_degree_counterparties": len(unique_receivers), "total_outflow": total_outflow}
+            relevant_transactions=[t.transaction_id for t in best_cluster[:10]],
+            graph_features={"out_degree_counterparties": len(best_receivers), "total_outflow": best_volume}
         )
         return indicator, [ev_item]
 
@@ -252,6 +340,7 @@ class RuleEvaluator:
         if not burst_found:
             return None, []
 
+        burst_vol = sum(t.amount for t in burst_txs)
         ev_id = f"EVD-BURST-{account_id}"
         ev_item = EvidenceItemSchema(
             evidence_id=ev_id,
@@ -260,9 +349,10 @@ class RuleEvaluator:
             description=f"Velocity anomaly: Account executed {len(burst_txs)} transactions within a {(burst_txs[-1].timestamp - burst_txs[0].timestamp).total_seconds()/3600:.1f} hour interval."
         )
 
+        score = min(45.0, 25.0 + min(20.0, (burst_vol / 20000.0) * 10.0))
         indicator = IndicatorResult(
             name="high_velocity_burst",
-            score=20.0,
+            score=round(score, 1),
             explanation=f"High transaction frequency burst: {len(burst_txs)} transactions clustered within {settings.HIGH_VELOCITY_WINDOW_HOURS} hours.",
             evidence_ids=[ev_id],
             relevant_transactions=[t.transaction_id for t in burst_txs],
@@ -275,25 +365,37 @@ class RuleEvaluator:
             return None, []
 
         # Localized bounded search for cycles containing account_id (length 2 to 5)
-        # Look for paths from account_id's successors back to account_id with cutoff <= 4
         successors = list(self.graph.successors(account_id))
         if not successors:
             return None, []
 
         found_cycle = None
+        cycle_total_vol = 0.0
+
         for succ in successors:
             if succ == account_id:
                 continue
             # Look for a path from succ back to account_id in <= 4 hops
             try:
-                # Use simple DiGraph restricted to 4-hop ego network
                 ego_nodes = set(nx.single_source_shortest_path_length(self.graph, account_id, cutoff=4).keys())
                 ego_nodes.update(nx.single_source_shortest_path_length(self.graph.reverse(), account_id, cutoff=4).keys())
                 sub_dg = nx.DiGraph(self.graph.subgraph(ego_nodes))
                 if sub_dg.has_node(succ) and sub_dg.has_node(account_id):
                     for path in nx.all_simple_paths(sub_dg, source=succ, target=account_id, cutoff=4):
-                        found_cycle = [account_id] + path[:-1]
-                        break
+                        candidate_cycle = [account_id] + path[:-1]
+                        # Verify edge amounts to ensure substantial fund routing (not casual transactions)
+                        cycle_pairs = list(zip(candidate_cycle, candidate_cycle[1:] + [candidate_cycle[0]]))
+                        edge_amounts = []
+                        for u, v in cycle_pairs:
+                            edge_data = self.graph.get_edge_data(u, v)
+                            if edge_data:
+                                max_edge_amt = max(d.get("amount", 0.0) for d in edge_data.values())
+                                edge_amounts.append(max_edge_amt)
+                        
+                        if edge_amounts and min(edge_amounts) >= 5000.0 and sum(edge_amounts) >= 20000.0:
+                            found_cycle = candidate_cycle
+                            cycle_total_vol = sum(edge_amounts)
+                            break
                 if found_cycle:
                     break
             except Exception:
@@ -309,15 +411,16 @@ class RuleEvaluator:
             evidence_id=ev_id,
             evidence_type="GRAPH_METRIC",
             source_id=account_id,
-            description=f"Circular layering loop identified in transaction graph: {cycle_str}."
+            description=f"Circular layering loop identified in transaction graph: {cycle_str} (Cumulative Volume: {format_inr(cycle_total_vol)})."
         )
 
+        score = min(65.0, 35.0 + min(30.0, (cycle_total_vol / 50000.0) * 15.0))
         indicator = IndicatorResult(
             name="circular_chain_movement",
-            score=35.0,
-            explanation=f"Identified closed circular fund loop: {cycle_str}. Circular topology strongly correlates with layering to obscure origins of illicit capital.",
+            score=round(score, 1),
+            explanation=f"Identified closed circular fund loop: {cycle_str}. Cumulative volume {format_inr(cycle_total_vol)} routed through closed cycle.",
             evidence_ids=[ev_id],
             relevant_transactions=[],
-            graph_features={"cycle_nodes": cycle, "cycle_length": len(cycle)}
+            graph_features={"cycle_nodes": cycle, "cycle_length": len(cycle), "cycle_volume": cycle_total_vol}
         )
         return indicator, [ev_item]

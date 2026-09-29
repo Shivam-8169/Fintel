@@ -1,16 +1,15 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class EvidenceItemSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     evidence_id: str
     case_id: Optional[str] = None
     evidence_type: str  # TRANSACTION, GRAPH_METRIC, KYC, ANOMALY
     source_id: str
     description: str
-
-    class Config:
-        from_attributes = True
 
 
 class IndicatorResult(BaseModel):

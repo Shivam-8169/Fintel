@@ -55,3 +55,25 @@ def test_ingest_transactions_normalizes_amounts(db_session):
     tx = db_session.query(Transaction).filter_by(transaction_id="TX-01").first()
     assert tx is not None
     assert tx.amount == 12500.50
+
+
+def test_ingest_accounts_handles_relationships_and_defaults(db_session):
+    agent = IngestionAgent(db_session)
+    # First create a customer
+    cust_data = "customer_id,name\nCUST-100,Alice Smith\n".encode("utf-8")
+    agent.ingest_customers_csv(cust_data)
+
+    csv_data = (
+        "account_id,customer_id,account_type\n"
+        "ACC-001,CUST-100,CHECKING\n"
+        "ACC-002,NON_EXISTENT,SAVINGS\n"  # Auto-provisions customer or sets None with warning
+        "ACC-003,,SAVINGS\n"
+        ",CUST-100,SAVINGS\n"  # Empty account_id rejected
+    ).encode("utf-8")
+
+    summary = agent.ingest_accounts_csv(csv_data, "accounts.csv")
+    assert summary.records_received == 4
+    assert summary.records_valid == 3
+    assert summary.records_rejected == 1
+    assert db_session.query(Account).count() == 3
+

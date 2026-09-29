@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Outer Shield Gradient -->
+    <linearGradient id="shieldGrad" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="45%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Inner Field Gradient -->
+    <linearGradient id="fieldGrad" x1="50" y1="10" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- Bars Gradient -->
+    <linearGradient id="barGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+
+    <!-- Dynamic Wave Gradient -->
+    <linearGradient id="waveGrad" x1="20" y1="80" x2="80" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+
+    <!-- Node Glow -->
+    <filter id="nodeGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Outer Shield Shell -->
+  <path
+    d="M 50 6 L 88 20 C 88 56, 76 80, 50 94 C 24 80, 12 56, 12 20 Z"
+    fill="url(#shieldGrad)"
+    stroke="#60A5FA"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Inner Dark Field -->
+  <path
+    d="M 50 11 L 83 23 C 83 54, 72 75, 50 88 C 28 75, 17 54, 17 23 Z"
+    fill="url(#fieldGrad)"
+    stroke="#1E3A8A"
+    stroke-width="1"
+  />
+
+  <!-- Subtle Bevel Shade (Right Half) -->
+  <path
+    d="M 50 11 L 83 23 C 83 54, 72 75, 50 88 Z"
+    fill="#000000"
+    fill-opacity="0.22"
+  />
+
+  <!-- Left: Ascending Financial Intelligence Ledger Bars -->
+  <g fill="url(#barGrad)">
+    <rect x="23" y="58" width="4.5" height="15" rx="1.2" />
+    <rect x="30" y="47" width="4.5" height="26" rx="1.2" />
+    <rect x="37" y="36" width="4.5" height="37" rx="1.2" />
+    <rect x="44" y="24" width="4.5" height="49" rx="1.2" />
+  </g>
+
+  <!-- Right: Transaction Network Topology (Nodes & Links) -->
+  <g stroke="#38BDF8" stroke-width="1.2" stroke-linecap="round" opacity="0.85">
+    <line x1="59" y1="33" x2="71" y2="44" />
+    <line x1="59" y1="33" x2="57" y2="58" />
+    <line x1="71" y1="44" x2="77" y2="65" />
+    <line x1="57" y1="58" x2="77" y2="65" />
+    <line x1="57" y1="58" x2="65" y2="76" />
+  </g>
+
+  <g fill="#38BDF8" filter="url(#nodeGlow)">
+    <circle cx="59" cy="33" r="3.2" fill="#E0F2FE" stroke="#0284C7" stroke-width="1" />
+    <circle cx="71" cy="44" r="3" fill="#BAE6FD" stroke="#0284C7" stroke-width="1" />
+    <circle cx="57" cy="58" r="3.5" fill="#38BDF8" stroke="#0369A1" stroke-width="1" />
+    <circle cx="77" cy="65" r="3.5" fill="#38BDF8" stroke="#0369A1" stroke-width="1" />
+    <circle cx="65" cy="76" r="2.8" fill="#0284C7" stroke="#38BDF8" stroke-width="1" />
+  </g>
+
+  <!-- Dynamic Autonomous Intelligence Swoosh / Wave -->
+  <path
+    d="M 17 76 C 26 73, 33 63, 44 56 C 54 49, 64 42, 75 34 C 68 40, 56 50, 47 58 C 36 67, 28 77, 20 81 Z"
+    fill="url(#waveGrad)"
+    opacity="0.95"
+  />
+  <path
+    d="M 19 75 C 31 71, 44 58, 75 34"
+    stroke="#FFFFFF"
+    stroke-width="1.2"
+    stroke-linecap="round"
+  />
+</svg>

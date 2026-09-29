@@ -1,0 +1,130 @@
+/* =========================================================
+   FINTEL DESIGN SYSTEM - LAYOUT (DARK THEME)
+   ========================================================= */
+
+.app-root {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-app);
+}
+
+.app-sidebar {
+  width: 240px;
+  background-color: var(--bg-sidebar);
+  color: var(--text-sidebar);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--border-default);
+  z-index: 50;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+}
+
+.app-main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app-header {
+  height: 56px;
+  background-color: var(--bg-app);
+  border-bottom: 1px solid var(--border-default);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 16px;
+  max-width: 1480px;
+  margin: 0 auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 640px) {
+  .app-header {
+    padding: 0 20px;
+  }
+  .app-content {
+    padding: 20px 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-header {
+    padding: 0 28px;
+  }
+  .app-content {
+    padding: 24px 32px;
+  }
+}
+
+/* Tablet & Mobile Drawer Transition */
+@media (max-width: 1023px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    height: 100vh;
+    height: 100dvh;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    transform: translateX(-100%);
+  }
+
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+/* Fluid Typography Utilities */
+.text-fluid-h1 {
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  line-height: 1.25;
+}
+
+.text-fluid-h2 {
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  line-height: 1.3;
+}
+
+.text-fluid-h3 {
+  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+  line-height: 1.35;
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Minimum 44px Touch Target Utility for Mobile */
+@media (max-width: 767px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

@@ -19,6 +19,7 @@ if backend_dir not in sys.path:
 from app.database.database import engine, SessionLocal, Base
 from app.database.models import User, Customer, Account, Transaction, InvestigatorNote
 from app.utils.security import hash_password
+from app.utils.datetime_utils import utcnow
 from app.agents.ingestion_agent import IngestionAgent
 from app.services.detection_service import DetectionService
 from app.agents.investigation_agent import InvestigationAgent
@@ -26,38 +27,68 @@ from app.agents.reporting_agent import ReportingAgent
 from scripts.generate_synthetic_data import generate_synthetic_data, OUTPUT_DIR
 
 
+from app.database.database import engine, SessionLocal, Base, init_db_schema
+
+
 def seed_database():
     """Initializes schema and populates demo data."""
     print("=== Fintel Database Seeding ===")
-    print("1. Creating database schema...")
-    Base.metadata.create_all(bind=engine)
+    print("1. Creating database schema and running migrations...")
+    init_db_schema()
 
     db = SessionLocal()
     try:
         # Check / Create Demo Users
-        existing_user = db.query(User).filter(User.email == "investigator@fintel.local").first()
-        if not existing_user:
-            print("2. Creating demo investigator and admin users...")
-            investigator = User(
-                name="Ananya Sharma (Lead Investigator)",
-                email="investigator@fintel.local",
-                password_hash=hash_password("investigator123"),
-                role="INVESTIGATOR",
-                created_at=datetime.utcnow()
-            )
-            admin = User(
+        admin_user = db.query(User).filter(User.email == "admin@fintel.local").first()
+        if not admin_user:
+            admin_user = User(
                 name="System Administrator",
                 email="admin@fintel.local",
                 password_hash=hash_password("admin123"),
-                role="ADMIN",
-                created_at=datetime.utcnow()
+                role="Admin",
+                status="Active",
+                created_at=utcnow()
             )
-            db.add_all([investigator, admin])
-            db.commit()
-            print("   -> Created investigator@fintel.local (password: investigator123)")
-            print("   -> Created admin@fintel.local (password: admin123)")
+            db.add(admin_user)
+            print("   -> Created admin@fintel.local (password: admin123, role: Admin)")
         else:
-            print("2. Demo users already exist.")
+            admin_user.role = "Admin"
+            admin_user.status = "Active"
+
+        lead_user = db.query(User).filter(User.email == "investigator@fintel.local").first()
+        if not lead_user:
+            lead_user = User(
+                name="Shivam Sharma",
+                email="investigator@fintel.local",
+                password_hash=hash_password("investigator123"),
+                role="Lead Investigator",
+                status="Active",
+                created_at=utcnow()
+            )
+            db.add(lead_user)
+            print("   -> Created investigator@fintel.local (password: investigator123, role: Lead Investigator)")
+        else:
+            lead_user.role = "Lead Investigator"
+            lead_user.status = "Active"
+            lead_user.name = "Shivam Sharma"
+
+        investigator_user = db.query(User).filter(User.email == "priya.patel@fintel.local").first()
+        if not investigator_user:
+            investigator_user = User(
+                name="Priya Patel",
+                email="priya.patel@fintel.local",
+                password_hash=hash_password("investigator123"),
+                role="Investigator",
+                status="Active",
+                created_at=utcnow()
+            )
+            db.add(investigator_user)
+            print("   -> Created priya.patel@fintel.local (password: investigator123, role: Investigator)")
+        else:
+            investigator_user.role = "Investigator"
+            investigator_user.status = "Active"
+
+        db.commit()
 
         # Check if transactions already exist
         tx_count = db.query(Transaction).count()
@@ -91,7 +122,7 @@ def seed_database():
                         note_id=str(row["note_id"]),
                         case_id=str(row.get("case_id", "CASE-DEMO")),
                         note_text=str(row["note_text"]),
-                        created_at=datetime.utcnow()
+                        created_at=utcnow()
                     )
                     db.add(note)
                 db.commit()

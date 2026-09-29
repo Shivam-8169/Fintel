@@ -1,10 +1,16 @@
 import os
 from typing import List
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
     PROJECT_NAME: str = "Fintel"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api"
@@ -43,11 +49,6 @@ class Settings(BaseSettings):
     HIGH_VELOCITY_TX_COUNT: int = 5
     HIGH_VELOCITY_WINDOW_HOURS: int = 12
     FAN_OUT_IN_DEGREE_THRESHOLD: int = 4
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
 
 
 settings = Settings()

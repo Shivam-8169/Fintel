@@ -12,6 +12,7 @@ from app.database.models import Account, Transaction, Customer
 from app.graph.builder import GraphBuilder
 from app.graph.analysis import GraphAnalyzer
 from app.graph.subgraph import SubgraphExtractor
+from app.utils.datetime_utils import utcnow
 
 
 @pytest.fixture
@@ -23,16 +24,16 @@ def db_session():
 
     # Seed 4 accounts in a chain
     accs = [
-        Account(account_id=f"ACC-{i}", account_type="SAVINGS", created_at=datetime.utcnow())
+        Account(account_id=f"ACC-{i}", account_type="SAVINGS", created_at=utcnow())
         for i in range(1, 5)
     ]
     session.add_all(accs)
 
     txs = [
-        Transaction(transaction_id="T1", sender_account="ACC-1", receiver_account="ACC-2", amount=10000.0, timestamp=datetime.utcnow()),
-        Transaction(transaction_id="T2", sender_account="ACC-2", receiver_account="ACC-3", amount=9500.0, timestamp=datetime.utcnow()),
-        Transaction(transaction_id="T3", sender_account="ACC-3", receiver_account="ACC-4", amount=9000.0, timestamp=datetime.utcnow()),
-        Transaction(transaction_id="T4", sender_account="ACC-4", receiver_account="ACC-1", amount=8500.0, timestamp=datetime.utcnow())
+        Transaction(transaction_id="T1", sender_account="ACC-1", receiver_account="ACC-2", amount=10000.0, timestamp=utcnow()),
+        Transaction(transaction_id="T2", sender_account="ACC-2", receiver_account="ACC-3", amount=9500.0, timestamp=utcnow()),
+        Transaction(transaction_id="T3", sender_account="ACC-3", receiver_account="ACC-4", amount=9000.0, timestamp=utcnow()),
+        Transaction(transaction_id="T4", sender_account="ACC-4", receiver_account="ACC-1", amount=8500.0, timestamp=utcnow())
     ]
     session.add_all(txs)
     session.commit()

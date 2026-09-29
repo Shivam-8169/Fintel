@@ -1,6 +1,6 @@
 from typing import Optional, Any
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class AuditLogCreate(BaseModel):
@@ -12,6 +12,8 @@ class AuditLogCreate(BaseModel):
 
 
 class AuditLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     case_id: Optional[str] = None
     actor_type: str
@@ -19,6 +21,3 @@ class AuditLogResponse(BaseModel):
     action: str
     details: Optional[str] = None
     timestamp: datetime
-
-    class Config:
-        from_attributes = True

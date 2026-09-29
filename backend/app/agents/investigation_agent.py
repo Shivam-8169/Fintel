@@ -17,6 +17,7 @@ from app.graph.builder import GraphBuilder
 from app.graph.analysis import GraphAnalyzer
 from app.prompts.investigation_prompts import INVESTIGATION_SYSTEM_PROMPT, INVESTIGATION_USER_PROMPT
 from app.schemas.investigation import InvestigationResult, SuspiciousPatternItem, ReasoningStep
+from app.utils.datetime_utils import utcnow
 
 logger = logging.getLogger("fintel.investigation_agent")
 
@@ -100,13 +101,13 @@ class InvestigationAgent:
             suspicious_patterns=json.dumps([p.model_dump() for p in result.suspicious_patterns]),
             reasoning=json.dumps([r.model_dump() for r in result.reasoning]),
             uncertainty=json.dumps(result.uncertainty),
-            created_at=datetime.utcnow()
+            created_at=utcnow()
         )
         self.db.add(inv_record)
 
         # Update case status
         case.status = "UNDER_INVESTIGATION"
-        case.updated_at = datetime.utcnow()
+        case.updated_at = utcnow()
 
         # Audit log
         audit = AuditLog(
@@ -115,7 +116,7 @@ class InvestigationAgent:
             actor_id="InvestigationAgent (Mock)" if is_mock else "InvestigationAgent (LLM)",
             action="INVESTIGATION_COMPLETED",
             details=f"Investigation synthesized with {len(result.suspicious_patterns)} patterns and {len(result.reasoning)} reasoning steps.",
-            timestamp=datetime.utcnow()
+            timestamp=utcnow()
         )
         self.db.add(audit)
         self.db.commit()

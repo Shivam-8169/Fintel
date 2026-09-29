@@ -10,6 +10,7 @@ class CaseInfoSection(BaseModel):
     date_drafted: str
     investigating_entity: str = "Fintel Autonomous AML Engine"
     human_status: str = "UNAPPROVED"
+    version: Optional[str] = "1.0"
 
 
 class SubjectInfoSection(BaseModel):
@@ -88,6 +89,7 @@ class ReportResponse(BaseModel):
     report_id: str
     case_id: str
     status: str
+    version: Optional[str] = "1.0"
     report_content: StructuredSARReport
     created_at: datetime
     updated_at: datetime
