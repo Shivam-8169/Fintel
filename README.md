@@ -169,8 +169,20 @@ cd ..
 
 ---
 
-## 10. Important Limitations & Academic Scope
+## 10. Production Deployment (Render & Vercel)
+- **Render Backend Start Command**:
+  `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- **Render Environment Variables**:
+  - `ENVIRONMENT`: `production`
+  - `CORS_ORIGINS`: `https://<your-vercel-app>.vercel.app,http://localhost:5173`
+  - `DATABASE_URL`: `sqlite:///./fintel.db` (or your Render PostgreSQL internal database URL)
+- **Vercel Frontend Environment Variables**:
+  - `VITE_API_BASE_URL`: `https://<your-render-backend-name>.onrender.com/api`
+
+---
+
+## 11. Important Limitations & Academic Scope
 - **Prototype Status**: Strictly an academic simulation. Real customer PII and live banking connections are not used.
 - **No Autonomous Filing**: Reports are watermarked as `DRAFT — REQUIRES HUMAN REVIEW` and cannot be filed automatically.
-- **Demo Mode**: The application operates deterministically without requiring paid third-party LLM API keys. Setting `GEMINI_API_KEY` activates live Gemini 1.5 Flash reasoning.
+- **Demo Mode**: The application operates deterministically without requiring paid third-party LLM API keys. Setting `LLM_API_KEY` activates live Gemini 1.5 Flash reasoning.
 

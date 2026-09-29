@@ -4,6 +4,9 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config.settings import settings
 
 db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
 connect_args = {}
 if db_url.startswith("sqlite:///./") or db_url == "sqlite:///fintel.db":
     backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -25,24 +28,27 @@ Base = declarative_base()
 
 
 def init_db_schema():
-    """Initializes tables and safely runs lightweight column migrations for SQLite."""
+    """Initializes tables and safely runs lightweight column migrations for database backends."""
     import uuid
     from sqlalchemy import text
 
     Base.metadata.create_all(bind=engine)
-    with engine.connect() as conn:
-        try:
-            res = conn.execute(text("PRAGMA table_info(users)"))
-            cols = [row[1] for row in res.fetchall()]
-            if cols:
-                if "user_id" not in cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN user_id VARCHAR(50)"))
-                if "status" not in cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN status VARCHAR(50) DEFAULT 'Active'"))
-                if "invited_by" not in cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN invited_by VARCHAR(100)"))
-                if "invited_at" not in cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN invited_at DATETIME"))
+    
+    # Run SQLite-specific column migrations only when using SQLite
+    if "sqlite" in str(engine.url):
+        with engine.connect() as conn:
+            try:
+                res = conn.execute(text("PRAGMA table_info(users)"))
+                cols = [row[1] for row in res.fetchall()]
+                if cols:
+                    if "user_id" not in cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN user_id VARCHAR(50)"))
+                    if "status" not in cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN status VARCHAR(50) DEFAULT 'Active'"))
+                    if "invited_by" not in cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN invited_by VARCHAR(100)"))
+                    if "invited_at" not in cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN invited_at DATETIME"))
                 if "last_login_at" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN last_login_at DATETIME"))
                 conn.commit()
